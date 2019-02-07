@@ -435,14 +435,14 @@ int BDH<data_t>::NearestNeighbor(
 	)const
 {
 
-	//探索対象となるバケットのハッシュキーを生成 start//
+	// Generate the Bucket Hash key of the needle (begin)//
 	vector<hashKey_t> bucketList;
 	int NNC = getBucketList(query, searchParam, searchMode, bucketList);
 
-	//探索対象となるバケットのハッシュキーを生成 end//
+	// Generate the Bucket Hash key of the needle (end)//
 	linearSearchInNNcandidates(query, point, K, epsilon, bucketList);
 
-	return NNC;//距離計算した点数
+	return NNC;// Number of points used to compute the distance
 }
 
 /*4 SearchFunction*/
@@ -459,21 +459,21 @@ int BDH<data_t>::BicromaticReverseNearestNeighbor(
 	)const
 {
 
-	//探索対象となるバケットのハッシュキーを生成 start//
-	vector<hashKey_t>* bucketList = new vector<hashKey_t>[nQuery];
+    // Generate the Bucket Hash key of the needle (begin)//
+    vector<hashKey_t>* bucketList = new vector<hashKey_t>[nQuery];
 	int NNC = 0;
 	for (size_t q = 0; q < nQuery; ++q)
 	{
 		NNC += getBucketList(query[q], searchParam, searchMode, bucketList[q]);
 	}
 
-	//生成されたクエリ→ハッシュキーのリストからハッシュキー→クエリのmapを作成
+	// Generate the map of Hash -> Query from the generated list of Query -> Hash
 	unordered_map<size_t, vector<size_t>> queryListFromBucket;//first: hash key, second: vector of query index 
 	//map<size_t, vector<size_t>> queryListFromBucket;//first: hash key, second: vector of query index 
 	getQueryListFromBucket(nQuery, bucketList, queryListFromBucket);
 	delete[] bucketList;
 
-	//クエリリストから逆最近某店を求める
+	// Extract the reverse Nearest Neighbor from the query list
 	extractRNNpoints(K, RKNNpoint, queryListFromBucket, query);
 
 	return NNC;
@@ -496,7 +496,7 @@ void BDH<data_t>::setLayerParam(
 	}
 	sort(layer, layer + M);
 
-	//m番目の部分空間からの残り距離の最大と最小を計算
+	// Compute the maximum and minimum distance from the m-th subspace
 	double distRestMin = 0;
 	double distRestMax = 0;
 	layer_p_end = layer - 1;
@@ -510,9 +510,9 @@ void BDH<data_t>::setLayerParam(
 
 template <typename data_t>
 int BDH<data_t>::NearBucket_R(
-	const double Radius,//探索半径
-	layer_t* const layer,//クエリから求めたレイヤごとの部分距離情報
-	const status_t& status,//ノードの状態を表す
+	const double Radius,// Search radius
+	layer_t* const layer,// Computed sub-distance for each layer from query
+	const status_t& status,// Status of the node
 	vector<hashKey_t>& bucketList //![out] collect hash key of buckets near than Radius from query
 	)const
 {
@@ -566,9 +566,9 @@ int BDH<data_t>::NearBucket_R(
 
 template <typename data_t>
 int BDH<data_t>::NearBucket_C(
-	const double& Lbound,//探索下限
-	const double& Ubound,//探索上限
-	layer_t* const layer,//クエリから求めたレイヤごとの部分距離情報
+	const double& Lbound,// Lower boundary of search
+	const double& Ubound,// Upper boundary of search
+	layer_t* const layer,// Computed sub-distance for each layer from query
 	const status_t& status,
 	vector<hashKey_t>& bucketList
 	) const
@@ -627,10 +627,10 @@ int BDH<data_t>::NearBucket_C(
 
 template <typename data_t>
 int BDH<data_t>::NearBucket_C_list(
-	const double Rbound,//探索半径
-	layer_t* const layer,//クエリから求めたレイヤごとの部分距離情報
-	list<status_t>& statusQue,//探索途中のノードを保持
-	list<status_t>::iterator* itr,//ノードの状態を表す
+	const double Rbound,// Search radius
+    layer_t* const layer,// Computed sub-distance for each layer from query
+    list<status_t>& statusQue,// list of node
+	list<status_t>::iterator* itr,// status of node
 	vector<hashKey_t>& bucketList
 	) const
 {
@@ -679,15 +679,15 @@ int BDH<data_t>::NearBucket_C_list(
 		}
 	}
 
-	//すべてのノードにアクセスしたか
+	// Check if all node has been checked
 	if (i == layer[m].k)
 	{
-		//ノードを消して次へ
+		// erase the node and move forward
 		statusQue.erase((*itr)++);
 	}
 	else
 	{
-		//ノードの状態を更新して次へ
+		// update the node status and go next
 		(*itr)->nodeIdx = i;
 		++(*itr);
 	}
@@ -698,7 +698,7 @@ int BDH<data_t>::NearBucket_C_list(
 
 template <typename data_t>
 int BDH<data_t>::searchInBucket(
-	data_t* query,//クエリ
+	data_t* query,// query
 	size_t hashKey,
 	priority_queue<point_t<data_t>>& NNpointQue
 	) const {
@@ -756,24 +756,24 @@ void BDH<data_t>::linearSearchInNNcandidates(
 	vector<hashKey_t>& bucketList
 	) const
 {
-	//生成されたハッシュキーを元にバケットを参照して最近傍点を探索 start//
+	// Identify the bucket based on generated hash and look up the nearest neighbor (begin)//
 	priority_queue<point_t<data_t>> NNpointQue;
-	//最近傍点保持用のヒープ木を初期化
+	// Initialize the heap tree which holds the nearest neighbor
 	for (int i = 0; i < K; ++i)
 	{
 		NNpointQue.push(point_t<data_t>(-1, epsilon));
 	}
 
-	//見つけてきたハッシュキーを参照して最近傍点を探索する
+	// Search the nearest neighbor based on hash key
 	vector<hashKey_t>::iterator keyList_itr = bucketList.begin();
 	vector<hashKey_t>::iterator keyList_itr_end = bucketList.end();
 	for (; keyList_itr != keyList_itr_end; ++keyList_itr)
 	{
 		searchInBucket(query, (*keyList_itr).hashKey, NNpointQue);
 	}
-	//生成されたハッシュキーを元にバケットを参照して最近傍点を探索 end//
+    // Identify the bucket based on generated hash and look up the nearest neighbor (end)//
 
-	//優先度付きキュー内の最近傍点を返却用引数にコピー
+	// copy the result from priority queue
 	for (int i = K - 1; i >= 0; --i)
 	{
 		point[i] = NNpointQue.top();

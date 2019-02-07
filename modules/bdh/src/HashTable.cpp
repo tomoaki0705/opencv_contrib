@@ -2,7 +2,7 @@
 
 void HashTable::initialize(size_t entrySize, size_t hashSize)
 {
-	//ƒƒ‚ƒŠ‰Šú‰»
+	// Initialize the memory
 	this->~HashTable();
 
 	this->entrySize = entrySize;
@@ -12,12 +12,12 @@ void HashTable::initialize(size_t entrySize, size_t hashSize)
 		hashTable = new address_t[hashSize];
 	}
 	catch (bad_alloc)
-	{ // —áŠO bad_alloc ‚ð‚±‚±‚ÅŽó‚¯Žæ‚é
+	{ // Catch the bad_alloc exception here
 		cerr << " Out of memory. size:" << hashSize << endl;
 		cerr << __FILE__ <<"\t" << __LINE__ << endl;
 		abort();
 	}
-	catch (...){ // ‚»‚êˆÈŠO‚Ì—áŠO‚Í‚±‚±‚ÅŽó‚¯Žæ‚é
+	catch (...){ // Catch the other exceptions here
 		cerr << "error something." << endl;
 		cerr << __FILE__ << "\t" << __LINE__ << endl;
 		abort();
