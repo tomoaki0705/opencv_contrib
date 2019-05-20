@@ -55,10 +55,23 @@ TEST(BDH_Classification, Load)
     EXPECT_TRUE(readResult);
     EXPECT_EQ(num, 10000);
     EXPECT_EQ(dim, 128);
+    //delete data point
+    for (size_t n = 0; n < num; n++)
+    {
+        delete[] data[n];
+    }
+    delete[] data;
+    data = NULL;
     readResult = loadFeature(String("sift1K.ucquery"), dim, num, data);
     EXPECT_TRUE(readResult);
     EXPECT_EQ(num, 1000);
     EXPECT_EQ(dim, 128);
+    //delete data point
+    for (size_t n = 0; n < num; n++)
+    {
+        delete[] data[n];
+    }
+    delete[] data;
 }
 
 TEST(BDH_Classification, Classify)
@@ -66,7 +79,7 @@ TEST(BDH_Classification, Classify)
     unsigned int num, dim;
     char** data = NULL;
     bool readResult = loadFeature(String("sift10K.ucdat"), dim, num, data);
-    
+    cv::bdh::Index bdh;
 }
 
 }} // namespace
