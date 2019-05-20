@@ -906,3 +906,36 @@ void BDH<data_t>::getQueryListFromBucket(
 template class BDH < unsigned char > ;
 template class BDH < float > ;
 template class BDH < double > ;
+
+namespace cv {
+namespace bdh {
+
+bool readBinary(const cv::String &path, unsigned &dim, unsigned &num, featureElement **data)
+{
+    ifstream ifs(path, ios::in | ios::binary);
+    if (ifs.is_open() == false)
+    {
+        return false;
+    }
+
+    {
+        uint32_t dimension, dataSize;
+        ifs.read((char*)&dimension, sizeof(dimension));
+        ifs.read((char*)&dataSize, sizeof(dataSize));
+        dim = dimension;
+        num = dataSize;
+    }
+    data = new featureElement*[num];
+
+    const int dSize = sizeof(featureElement)*dim;
+    for (unsigned n = 0; n < num; n++) {
+        data[n] = new featureElement[dim];
+        ifs.read((char*)data[n], dSize);
+    }
+    ifs.close();
+
+    return true;
+}
+
+} // bdh
+} // cv
