@@ -40,10 +40,13 @@ the use of this software, even if advised of the possibility of such damage.
 
 namespace opencv_test { namespace {
 
-bool loadFeature(String &filename, unsigned &dim, unsigned &num, featureElement** data)
+    const cv::String kFeatureFilename = "sift10K.ucdat";
+    const cv::String kQueryFilename = "sift1K.ucquery";
+
+bool loadFeature(const cv::String &filename, unsigned &dim, unsigned &num, featureElement** data)
 {
-    static string dataSetPath = TS::ptr()->get_data_path() + "bdh/";
-    string filePath = dataSetPath + filename;
+    static String dataSetPath = TS::ptr()->get_data_path() + "bdh/";
+    String filePath = dataSetPath + filename;
     return cv::bdh::readBinary(filePath, dim, num, data);
 }
 
@@ -51,10 +54,10 @@ TEST(BDH_Classification, Load)
 {
     unsigned int num, dim;
     char** data = NULL;
-    bool readResult = loadFeature(String("sift10K.ucdat"), dim, num, data);
+    bool readResult = loadFeature(kFeatureFilename, dim, num, data);
     EXPECT_TRUE(readResult);
-    EXPECT_EQ(num, 10000);
-    EXPECT_EQ(dim, 128);
+    EXPECT_EQ(num, (unsigned int)10000);
+    EXPECT_EQ(dim, (unsigned int)128);
     //delete data point
     for (size_t n = 0; n < num; n++)
     {
@@ -62,10 +65,10 @@ TEST(BDH_Classification, Load)
     }
     delete[] data;
     data = NULL;
-    readResult = loadFeature(String("sift1K.ucquery"), dim, num, data);
+    readResult = loadFeature(kQueryFilename, dim, num, data);
     EXPECT_TRUE(readResult);
-    EXPECT_EQ(num, 1000);
-    EXPECT_EQ(dim, 128);
+    EXPECT_EQ(num, (unsigned int)1000);
+    EXPECT_EQ(dim, (unsigned int)128);
     //delete data point
     for (size_t n = 0; n < num; n++)
     {
@@ -78,7 +81,8 @@ TEST(BDH_Classification, Classify)
 {
     unsigned int num, dim;
     char** data = NULL;
-    bool readResult = loadFeature(String("sift10K.ucdat"), dim, num, data);
+    bool readResult = loadFeature(kFeatureFilename, dim, num, data);
+    EXPECT_TRUE(readResult);
     cv::bdh::Index bdh;
 }
 

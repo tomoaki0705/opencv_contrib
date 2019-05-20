@@ -74,7 +74,7 @@ public:
 		delete[] subspace;
 	}
 
-	index_t get_nDdataPoints() const
+	size_t get_nDdataPoints() const
 	{
 		return hashTable.get_nEntry();
 	}
@@ -193,8 +193,7 @@ public:
 		vector<point_t<data_t>>* point,	//!< [out] result reverse nearest neighbors 
 		double searchParam,
 		search_mode searchMode,
-		int K = 1,						//!< [in] number of nearest neighbors
-		double epsilon = DBL_MAX		//!< [in] search points near than epsilon
+		int K = 1						//!< [in] number of nearest neighbors
 		)const;
 
 private:
@@ -290,7 +289,7 @@ private:
 
 		priority_queue<point_t<data_t>> NNqueries;
 
-		point_t<data_t> dummy(-1, epsilon);
+		point_t<data_t> dummy((size_t)-1, epsilon);
 		point_t<data_t> pushPoint;
 
 		//bucketToQuery内の各バケットにアクセス．
@@ -323,8 +322,7 @@ private:
 					dist = Distance(
 						dim,
 						dataPoint.addressOfpoint,
-						query[ql_itr],
-						KNNdist);
+						query[ql_itr]);
 
 					//K近傍点の更新
 					if (dist <= KNNdist)

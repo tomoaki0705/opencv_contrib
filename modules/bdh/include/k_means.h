@@ -157,41 +157,40 @@ K_Means<data_t, centroid_t>::~K_Means()
 
 template<typename data_t, typename centroid_t>
 void K_Means<data_t, centroid_t>::calclateCentroid(
-	int dim,	   //!< dimension
-	int num,	   //!< number of sample
+	int _dim,	   //!< dimension
+	int _num,	   //!< number of sample
 	data_t** point,//!< sample point set
-	int K		   //!< number of centroid
+	int _K		   //!< number of centroid
 	)
 {
+    setParam(_dim, _K);
 
-	setParam(dim, K);
-
-	if (dim == 1)
+	if (_dim == 1)
 	{
-		IniCentScala(num, point);
+		IniCentScala(_num, point);
 	}
 	else
 	{
-		IniCent_PlaPla(num, point);
+		IniCent_PlaPla(_num, point);
 	}
 
-	CalCent(num, point);
+	CalCent(_num, point);
 }
 
 template<typename data_t, typename centroid_t>
-void K_Means<data_t, centroid_t>::setParam(int dim, int K)
+void K_Means<data_t, centroid_t>::setParam(int _dim, int _K)
 {
 
-	if (this->dim == dim &&
-		this->K == K)
+	if (dim == _dim &&
+		K == _K)
 	{
 		return;
 	}
 	this->~K_Means();
 
 
-	this->dim = dim;
-	this->K = K;
+	dim = _dim;
+	K = _K;
 	centroid_size = new unsigned[K];
 	centroid_error = new double[K];
 	centroid = new double*[K];
@@ -277,12 +276,14 @@ void K_Means<data_t, centroid_t>::IniCent_PlaPla(
 	/* 重心から最も遠い点を求め、
 	* それを１つ目のセントロイドとする
 	*/
-	unsigned MinDisIndex_max = findMaxIndex(num, MinDisTable);
+    {
+	    unsigned MinDisIndex_max = findMaxIndex(num, MinDisTable);
 
-	for (int d = 0; d < dim; d++)
-	{
-		centroid[0][d] = point[MinDisIndex_max][d];
-	}
+	    for (int d = 0; d < dim; d++)
+	    {
+		    centroid[0][d] = point[MinDisIndex_max][d];
+	    }
+    }
 
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static)
@@ -341,7 +342,7 @@ unsigned K_Means<data_t, centroid_t>::findMaxIndex(int num, double* MinDisTable)
 }
 
 template<typename data_t, typename centroid_t>
-void K_Means<data_t, centroid_t>::updateMinDisTable(centroid_t* centroid, int num, data_t** point, double* MinDisTable){
+void K_Means<data_t, centroid_t>::updateMinDisTable(centroid_t* _centroid, int num, data_t** point, double* MinDisTable){
 
 	double dist;
 #ifdef _OPENMP
@@ -350,7 +351,7 @@ void K_Means<data_t, centroid_t>::updateMinDisTable(centroid_t* centroid, int nu
 	for (int n = 0; n < num; n++)
 	{
 		//check the distance to the nearest centroid
-		dist = Distance(dim, centroid, point[n], MinDisTable[n]);
+		dist = Distance(dim, _centroid, point[n]);
 
 		if (dist < MinDisTable[n])
 		{

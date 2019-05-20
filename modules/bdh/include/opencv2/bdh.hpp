@@ -508,7 +508,7 @@ namespace bdh {
             delete[] subspace;
         }
 
-        index_t get_nDdataPoints() const
+        size_t get_nDdataPoints() const
         {
             return hashTable.get_nEntry();
         }

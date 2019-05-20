@@ -22,17 +22,6 @@ double Distance(
 	query_t* query //!< [in] query
 	);
 
-/**
-* @brief distance calculation
-* @return distance
-*/
-template<typename data_t, typename query_t>
-double Distance(
-	int dim,
-	data_t* sample,
-	query_t* query,
-	double Limit
-	);
 
 /**
 * @brief k-means
@@ -64,24 +53,6 @@ double Distance(
 	query_t* query
 	)
 {
-	double dist = 0.0;
-
-	for (int d = 0; d < dim; ++d){
-		dist += NORM(query[d] - sample[d]);
-	}
-
-	return dist;
-}
-
-template<typename data_t, typename query_t>
-double Distance(
-	int dim, 
-	data_t* sample, 
-	query_t* query, 
-	double Limit
-	)
-{
-
 	double dist = 0.0;
 
 	for (int d = 0; d < dim; ++d){
@@ -105,7 +76,7 @@ int NearestNeighbor(
 	double distance;
 	for (int n = 1; n < num; n++){
 
-		distance = Distance(dim, sample[n], query, NNdis);
+		distance = Distance(dim, sample[n], query);
 		if (distance < NNdis){
 			NNdis = distance;
 			NNidx = n;
@@ -129,7 +100,7 @@ void NearestNeighbor(
 	for (int n = 1; n < num; n++)
 	{
 
-		distance = Distance(dim, sample[n], query, NNpoint.distance);
+		distance = Distance(dim, sample[n], query);
 		if (distance < NNpoint.distance)
 		{
 			NNpoint.distance = distance;

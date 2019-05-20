@@ -18,20 +18,20 @@ double square(double x)
 
 template <typename data_t>
 void BDHtraining<data_t>::training_ICCV2013(
-	int dim,
-	unsigned num,
+	int _dim,
+	unsigned _num,
 	data_t** data,
 	const base_t* const baseInput,
-	int P,
-	int bit,
+	int _P,
+	int _bit,
 	double bit_step)
 {
 	//delete BDHtraining();
 
-	this->dim = dim;
-	this->num = num;
-	this->P = P;
-	this->bit = bit;
+	this->dim = _dim;
+	this->num = _num;
+	this->P = _P;
+	this->bit = _bit;
 
 	if (bit_step <= 0.0)
 	{
@@ -96,23 +96,23 @@ void BDHtraining<data_t>::training_ICCV2013(
 
 template <typename data_t>
 void BDHtraining<data_t>::training(
-	int dim,
-	unsigned num,
+	int _dim,
+	unsigned _num,
 	data_t** data,
 	const base_t* const baseInput,
-	int M,
-	int P,
-	int bit,
+	int _M,
+	int _P,
+	int _bit,
 	double bit_step)
 {
 	//delete BDHtraining();
 
-	this->dim = dim;
-	this->num = num;
-	this->M = M;
-	this->P = P;
+	this->dim = _dim;
+	this->num = _num;
+	this->M = _M;
+	this->P = _P;
 	this->U = M*P;
-	this->bit = bit;
+	this->bit = _bit;
 
 	if (bit < M)
 	{

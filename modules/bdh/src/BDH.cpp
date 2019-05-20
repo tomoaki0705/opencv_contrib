@@ -9,22 +9,22 @@ const double deltaRate = 50;
 /************** Indexing *******************/
 template <typename data_t>
 void BDH<data_t>::parameterTuning(
-	int dim,
+	int _dim,
 	index_t num,
 	data_t** const data,
 	base_t* const base,
-	int M,
-	int P,
-	int bit,
+	int _M,
+	int _P,
+	int _bit,
 	double bit_step,
 	double sampling_rate
 	)
 {
 
-	this->dim = dim;
-	this->M = M;
-	this->P = P;
-	this->bit = bit;
+	dim = _dim;
+	M = _M;
+	P = _P;
+	bit = _bit;
 	hashSize = (size_t(1) << bit);
 	Subspace::dim = dim;
 
@@ -85,20 +85,20 @@ void BDH<data_t>::parameterTuning(
 /************** Indexing *******************/
 template <typename data_t>
 void BDH<data_t>::parameterTuning_ICCV2013(
-	int dim,
-	index_t num,
+	int _dim,
+	index_t _num,
 	data_t** const data,
 	base_t* const base,
-	int P,
-	int bit,
+	int _P,
+	int _bit,
 	double bit_step,
 	double sampling_rate
 	)
 {
 
-	this->dim = dim;
-	this->P = P;
-	this->bit = bit;
+	dim = _dim;
+	P = _P;
+	bit = _bit;
 	hashSize = (size_t(1) << bit);//hash size is 2^bit
 	Subspace::dim = dim;
 
@@ -119,11 +119,11 @@ void BDH<data_t>::parameterTuning_ICCV2013(
 	if (sampling_rate < 1.0)
 	{//use a part of data set for training
 		
-		data_t** l_data = new data_t*[num];
+		data_t** l_data = new data_t*[_num];
 		index_t l_num = 0;
 
 		double tmp = 0.0;
-		for (size_t n = 0; n < num; ++n)
+		for (size_t n = 0; n < _num; ++n)
 		{
 			tmp += sampling_rate;
 			if (sampling_rate >= 1.0)
@@ -145,7 +145,7 @@ void BDH<data_t>::parameterTuning_ICCV2013(
 	{
 
 		BDHtrainer.training_ICCV2013(
-			dim, num, data,
+			dim, _num, data,
 			base, P, bit, bit_step
 			);
 
@@ -458,9 +458,7 @@ int BDH<data_t>::BicromaticReverseNearestNeighbor(
 	vector<point_t<data_t>>* RKNNpoint,
 	double searchParam,
 	search_mode searchMode,
-	int K,
-	double epsilon
-	)const
+	int K)const
 {
 
     // Generate the Bucket Hash key of the needle (begin)//
@@ -765,7 +763,7 @@ void BDH<data_t>::linearSearchInNNcandidates(
 	// Initialize the heap tree which holds the nearest neighbor
 	for (int i = 0; i < K; ++i)
 	{
-		NNpointQue.push(point_t<data_t>(-1, epsilon));
+		NNpointQue.push(point_t<data_t>((size_t)-1, epsilon));
 	}
 
 	// Search the nearest neighbor based on hash key
