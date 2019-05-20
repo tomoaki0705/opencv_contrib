@@ -463,7 +463,7 @@ namespace bdh {
         )const;
     };
 
-    class BDH
+    class Index
     {
     public:
         typedef unsigned index_t;//!< type of index for point
@@ -491,7 +491,7 @@ namespace bdh {
         /**
         * @brief default constructor
         */
-        BDH()
+        Index()
             : dim(0)
             , M(0)
             , bit(0)
@@ -503,7 +503,7 @@ namespace bdh {
             , hashTable()
         {}
 
-        ~BDH()
+        ~Index()
         {
             delete[] subspace;
         }
