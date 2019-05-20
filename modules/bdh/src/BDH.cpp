@@ -1,3 +1,7 @@
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include "opencv2/bdh.hpp"
+
 #include <BDHtraining.h>
 #include <BDH.h>
 const double deltaRate = 50;
