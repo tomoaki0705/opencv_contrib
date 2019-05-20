@@ -40,21 +40,33 @@ the use of this software, even if advised of the possibility of such damage.
 
 namespace opencv_test { namespace {
 
+bool loadFeature(String &filename, unsigned &dim, unsigned &num, featureElement** data)
+{
+    static string dataSetPath = TS::ptr()->get_data_path() + "bdh/";
+    string filePath = dataSetPath + filename;
+    return cv::bdh::readBinary(filePath, dim, num, data);
+}
+
 TEST(BDH_Classification, Load)
 {
     unsigned int num, dim;
-    char** hoge = NULL;
-    string dataSetPath = TS::ptr()->get_data_path() + "bdh/";
-    string featurePath = dataSetPath + "sift10K.ucdat";
-    string queryPath = dataSetPath + "sift1K.ucquery";
-    bool readResult = cv::bdh::readBinary(featurePath, dim, num, hoge);
+    char** data = NULL;
+    bool readResult = loadFeature(String("sift10K.ucdat"), dim, num, data);
     EXPECT_TRUE(readResult);
     EXPECT_EQ(num, 10000);
     EXPECT_EQ(dim, 128);
-    readResult = cv::bdh::readBinary(queryPath, dim, num, hoge);
+    readResult = loadFeature(String("sift1K.ucquery"), dim, num, data);
     EXPECT_TRUE(readResult);
     EXPECT_EQ(num, 1000);
     EXPECT_EQ(dim, 128);
+}
+
+TEST(BDH_Classification, Classify)
+{
+    unsigned int num, dim;
+    char** data = NULL;
+    bool readResult = loadFeature(String("sift10K.ucdat"), dim, num, data);
+    
 }
 
 }} // namespace

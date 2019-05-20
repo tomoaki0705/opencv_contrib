@@ -910,7 +910,7 @@ template class BDH < double > ;
 namespace cv {
 namespace bdh {
 
-bool readBinary(const cv::String &path, unsigned &dim, unsigned &num, featureElement **data)
+bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement **data)
 {
     ifstream ifs(path, ios::in | ios::binary);
     if (ifs.is_open() == false)
