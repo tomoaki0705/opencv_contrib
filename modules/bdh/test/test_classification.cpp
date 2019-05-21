@@ -43,7 +43,7 @@ namespace opencv_test { namespace {
     const cv::String kFeatureFilename = "sift10K.ucdat";
     const cv::String kQueryFilename = "sift1K.ucquery";
 
-bool loadFeature(const cv::String &filename, unsigned &dim, unsigned &num, featureElement** data)
+bool loadFeature(const cv::String &filename, unsigned &dim, unsigned &num, featureElement** &data)
 {
     static String dataSetPath = TS::ptr()->get_data_path() + "bdh/";
     String filePath = dataSetPath + filename;
@@ -96,7 +96,7 @@ TEST(BDH_Classification, Classify)
     featureElement** data = NULL;
     bool readResult = loadFeature(kFeatureFilename, dim, num, data);
     EXPECT_TRUE(readResult);
-    cv::bdh::Index bdh;
+    cv::bdh::Index bdh(dim, num, data);
 }
 
 }} // namespace

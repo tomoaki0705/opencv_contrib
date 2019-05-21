@@ -463,7 +463,7 @@ namespace bdh {
         )const;
     };
 
-    class Index
+    class CV_EXPORTS_W Index
     {
     public:
         typedef unsigned index_t;//!< type of index for point
