@@ -19,7 +19,7 @@ namespace bdh {
     * @param num  number of features
     * @param data actual output
     */
-    CV_EXPORTS_W bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement** data);
+    CV_EXPORTS_W bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement** &data);
 
     typedef unsigned collision_t;//!< type of collision
     typedef char* address_t;	 //!< type of address
