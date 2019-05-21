@@ -9,7 +9,7 @@
 */
 namespace cv {
 namespace bdh {
-    typedef char featureElement;
+    typedef unsigned char featureElement;
     /////////////// Load Function ////////////////////////
     /**
     * @brief read point set
@@ -477,7 +477,7 @@ namespace bdh {
         double delta;		//!< increment step of search radius for C search
         int subHashSizeMax; //!< max of sub hash size
         size_t pointSize;	//!< number of data points
-        size_t entrySize;	//!< size of entory = sum of size of index and data point
+        size_t entrySize;	//!< size of entry = sum of size of index and data point
         size_t hashSize;	//!< hash size = 2^bit
         double variance;
 
@@ -502,6 +502,8 @@ namespace bdh {
             , subspace(nullptr)
             , hashTable()
         {}
+
+        Index(int dim, unsigned num, featureElement** data);
 
         ~Index()
         {
@@ -566,6 +568,9 @@ namespace bdh {
         size_t hashFunction(
             featureElement* data	//!< [in] a point 
         );
+
+        private:
+        void setParameters(const baseset_t * const baseSet, const baseset_t & lestSet);
 
     };
 }}

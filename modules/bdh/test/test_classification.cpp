@@ -53,34 +53,47 @@ bool loadFeature(const cv::String &filename, unsigned &dim, unsigned &num, featu
 TEST(BDH_Classification, Load)
 {
     unsigned int num, dim;
-    char** data = NULL;
+    featureElement** data = NULL;
     bool readResult = loadFeature(kFeatureFilename, dim, num, data);
     EXPECT_TRUE(readResult);
     EXPECT_EQ(num, (unsigned int)10000);
     EXPECT_EQ(dim, (unsigned int)128);
     //delete data point
-    for (size_t n = 0; n < num; n++)
+    if (data != NULL)
     {
-        delete[] data[n];
+        for (size_t n = 0; n < num; n++)
+        {
+            if (data[n] != NULL)
+            {
+                delete[] data[n];
+            }
+        }
+        delete[] data;
     }
-    delete[] data;
     data = NULL;
     readResult = loadFeature(kQueryFilename, dim, num, data);
     EXPECT_TRUE(readResult);
     EXPECT_EQ(num, (unsigned int)1000);
     EXPECT_EQ(dim, (unsigned int)128);
     //delete data point
-    for (size_t n = 0; n < num; n++)
+    if (data != NULL)
     {
-        delete[] data[n];
+        for (size_t n = 0; n < num; n++)
+        {
+            if (data[n] != NULL)
+            {
+                delete[] data[n];
+            }
+        }
+        delete[] data;
     }
-    delete[] data;
+    data = NULL;
 }
 
 TEST(BDH_Classification, Classify)
 {
     unsigned int num, dim;
-    char** data = NULL;
+    featureElement** data = NULL;
     bool readResult = loadFeature(kFeatureFilename, dim, num, data);
     EXPECT_TRUE(readResult);
     cv::bdh::Index bdh;

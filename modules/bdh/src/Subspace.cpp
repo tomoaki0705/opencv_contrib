@@ -3,6 +3,7 @@
 #include <NearestNeighbor.h>
 #include <k_means.h>
 
+namespace cv { namespace bdh {
 int Subspace::dim;
 
 void Subspace::setParameters(const baseset_t& baseSet)
@@ -77,3 +78,5 @@ double Subspace::getDistanceToCentroid(double* PCAquery, int centroidIndex) cons
 
 	return t;
 }
+
+} } // namespace

@@ -9,18 +9,22 @@
 
 using namespace std;
 
-int base_t::dim;
+
 
 double square(double x)
 {
-	return x*x;
+    return x*x;
 }
 
-template <typename data_t>
-void BDHtraining<data_t>::training_ICCV2013(
+namespace cv {
+namespace bdh {
+    int base_t::dim;
+
+//template <typename data_t>
+void BDHtraining::training_ICCV2013(
 	int _dim,
 	unsigned _num,
-	data_t** data,
+    featureElement** data,
 	const base_t* const baseInput,
 	int _P,
 	int _bit,
@@ -38,13 +42,11 @@ void BDHtraining<data_t>::training_ICCV2013(
 		bit_step = 0.1;
 	}
 
-	//baseをM個のbaseSetに分ける
 	base_t::dim = dim;
 	int M_max = min(dim / P, bit);
 	M = M_max;
 	partitioningDataspace_ICCV2013(baseInput);
 
-	//各部分空間でセントロイドを求める
 	float*** subPrjData = new float**[M_max];
 	for (int d, m = 0; m < M_max; ++m)
 	{
@@ -66,7 +68,6 @@ void BDHtraining<data_t>::training_ICCV2013(
 
 	calclateCentroid_ICCV2013(subPrjData, bit_step);
 
-	//セル内分散を求める
 	calculateCellVariance(subPrjData);
 
 	for (int m = 0; m < M_max; m++)
@@ -94,11 +95,11 @@ void BDHtraining<data_t>::training_ICCV2013(
 }
 
 
-template <typename data_t>
-void BDHtraining<data_t>::training(
+//template <typename data_t>
+void BDHtraining::training(
 	int _dim,
 	unsigned _num,
-	data_t** data,
+    featureElement** data,
 	const base_t* const baseInput,
 	int _M,
 	int _P,
@@ -107,12 +108,12 @@ void BDHtraining<data_t>::training(
 {
 	//delete BDHtraining();
 
-	this->dim = _dim;
-	this->num = _num;
-	this->M = _M;
-	this->P = _P;
-	this->U = M*P;
-	this->bit = _bit;
+	dim = _dim;
+	num = _num;
+	M = _M;
+	P = _P;
+	U = M*P;
+	bit = _bit;
 
 	if (bit < M)
 	{
@@ -124,11 +125,9 @@ void BDHtraining<data_t>::training(
 		bit_step = 0.1;
 	}
 	
-	//baseをM個のbaseSetに分ける
 	base_t::dim = dim;
 	partitioningDataspace(baseInput);
 
-	//各部分空間でセントロイドを求める
 	float*** subPrjData = new float**[M];
 	for (int d, m = 0; m < M; ++m)
 	{
@@ -150,7 +149,6 @@ void BDHtraining<data_t>::training(
 
 	calclateCentroid(subPrjData, bit_step);
 
-	//セル内分散を求める
 	calculateCellVariance(subPrjData);
 
 	for (int m = 0; m < M; m++)
@@ -177,8 +175,8 @@ void BDHtraining<data_t>::training(
 	}
 }
 
-template <typename data_t>
-void BDHtraining<data_t>::partitioningDataspace(
+//template <typename data_t>
+void BDHtraining::partitioningDataspace(
 	const base_t* const base)
 {
 
@@ -190,10 +188,8 @@ void BDHtraining<data_t>::partitioningDataspace(
 		baseSet[m].base = new base_t[P];
 	}
 
-	/* 各部分空間に基底を割り振る */
 	for (int d = 0; d < U; ++d)
 	{
-		//第d主成基底を割り振る部分空間を選択する
 		int target = 0;
 		for (int m = 1; m < M; ++m)
 		{
@@ -218,11 +214,11 @@ void BDHtraining<data_t>::partitioningDataspace(
 		++baseSet[target].subDim;
 	}
 
-	sort(baseSet, baseSet + M);
+	std::sort(baseSet, baseSet + M);
 }
 
-template <typename data_t>
-void BDHtraining<data_t>::partitioningDataspace_ICCV2013(
+//template <typename data_t>
+void BDHtraining::partitioningDataspace_ICCV2013(
 	const base_t* const base)
 {
 
@@ -234,7 +230,6 @@ void BDHtraining<data_t>::partitioningDataspace_ICCV2013(
 		baseSet[m].base = new base_t[P];
 	}
 
-	/* 各部分空間に基底を割り振る */
 	for (int m = 0, d = 0; m < M; ++m)
 	{
 		for (int p = 0; p < P; ++p,++d)
@@ -255,13 +250,12 @@ void BDHtraining<data_t>::partitioningDataspace_ICCV2013(
 }
 
 
-template <typename data_t>
-void BDHtraining<data_t>::calclateCentroid(
+//template <typename data_t>
+void BDHtraining::calclateCentroid(
 	float*** subPrjData,
 	double bit_step
 	)
 {
-	//baseSetを初期化
 	K_Means<float, double>* k_means = new K_Means<float, double>[M];
 	for (int m = 0; m < M; m++)
 	{	
@@ -272,7 +266,6 @@ void BDHtraining<data_t>::calclateCentroid(
 		baseSet[m].k = 2;
 	}
 
-	//各部分空間のコードブックを求める
 	int percent;
 	int tmp = 5;
 	int loop = static_cast<int>(((bit - M) / bit_step));
@@ -315,14 +308,13 @@ void BDHtraining<data_t>::calclateCentroid(
 	delete[] k_means;
 }
 
-template <typename data_t>
-void BDHtraining<data_t>::calclateCentroid_ICCV2013(
+//template <typename data_t>
+void BDHtraining::calclateCentroid_ICCV2013(
 	float*** subPrjData,
 	double bit_step
 	)
 {
 
-	//baseSetを初期化
 	K_Means<float, double>* k_means = new K_Means<float, double>[M];
 	for (int m = 0; m < M; m++)
 	{
@@ -331,7 +323,6 @@ void BDHtraining<data_t>::calclateCentroid_ICCV2013(
 		baseSet[m].k = 1;
 	}
 
-	//各部分空間のコードブックを求める
 	int percent;
 	int tmp = 5;
 	int loop = static_cast<int>(bit / bit_step);
@@ -346,8 +337,8 @@ void BDHtraining<data_t>::calclateCentroid_ICCV2013(
 			tmp += 5;
 		}
 	}
-	//残りビットを振り分け
-	double nouseBit = 0;
+
+    double nouseBit = 0;
 	for (int m = 0; m < M; ++m)
 	{
 		if (baseSet[m].k == 1)
@@ -392,8 +383,8 @@ void BDHtraining<data_t>::calclateCentroid_ICCV2013(
 	delete[] k_means;
 }
 
-template <typename data_t>
-void BDHtraining<data_t>::calculateCellVariance(
+//template <typename data_t>
+void BDHtraining::calculateCellVariance(
 	float*** subPrjData
 	)
 {
@@ -434,8 +425,8 @@ void BDHtraining<data_t>::calculateCellVariance(
 }
 
 
-template <typename data_t>
-bool BDHtraining<data_t>::saveParameters(const string& path)
+//template <typename data_t>
+bool BDHtraining::saveParameters(const string& path)
 {
 	ofstream ofs(path);
 
@@ -509,14 +500,13 @@ bool BDHtraining<data_t>::saveParameters(const string& path)
 	return true;
 }
 
-template <typename data_t>
-void BDHtraining<data_t>::updateCentroid(
+//template <typename data_t>
+void BDHtraining::updateCentroid(
 	double bit_step,
 	float*** subPrjData,
 	K_Means<float, double>*& k_means)
 {
 
-	//最も分散の大きい部分空間を選択
 	int target = 0;
 	for (int m = 1; m < M; m++)
 	{
@@ -529,20 +519,20 @@ void BDHtraining<data_t>::updateCentroid(
 	baseSet[target].bit += bit_step;
 	int k2 = static_cast<int>(pow(2.0, baseSet[target].bit) + 1.0e-10);
 
-	//kに変更がなければ何もしなくていい
 	if (baseSet[target].k == k2)
 	{
 		return;
 	}
 
-	//大きくなったkで再度セントロイドを計算．
 	baseSet[target].k = k2;
 	k_means[target].calclateCentroid(P, num, subPrjData[target], baseSet[target].k);
 	baseSet[target].error = k_means[target].getError();
 
 }
 
-template class BDHtraining < unsigned char > ;
-template class BDHtraining < unsigned short >;
-template class BDHtraining < float >;
-template class BDHtraining < double >;
+//template class BDHtraining < unsigned char > ;
+//template class BDHtraining < unsigned short >;
+//template class BDHtraining < float >;
+//template class BDHtraining < double >;
+
+} } // namespace
