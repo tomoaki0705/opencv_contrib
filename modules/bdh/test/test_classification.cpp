@@ -102,7 +102,19 @@ TEST(BDH_Classification, Classify)
     unsigned nQuery;
     loadFeature(kQueryFilename, dim, nQuery, query);
 
-    //bdh.n
+    int* NNC = new int[nQuery];
+    point_t<featureElement>** KNNpoint = new point_t<featureElement>*[nQuery];
+    for (unsigned q = 0; q < nQuery; ++q)
+    {
+        KNNpoint[q] = new point_t<featureElement>[1];
+    }
+
+    double startTime = getTickCount();
+    for (unsigned q = 0; q < nQuery; ++q)
+    {
+        NNC[q] = bdh.NearestNeighbor(query[q], KNNpoint[q], searchParam, bdh::search_mode::NumPoints, 1, DBL_MAX);
+    }
+    double endTime = getTickCount();
 }
 
 }} // namespace
