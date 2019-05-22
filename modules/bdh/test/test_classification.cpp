@@ -115,6 +115,17 @@ TEST(BDH_Classification, Classify)
         NNC[q] = bdh.NearestNeighbor(query[q], KNNpoint[q], searchParam, bdh::search_mode::NumPoints, 1, DBL_MAX);
     }
     double endTime = getTickCount();
+
+    for (unsigned qv = 0; qv < nQuery; ++qv)
+    {
+        std::cout << "query index : " << qv << "\tNNC : " << NNC[qv] << endl;
+        for (int i = 0; i < 1 && (KNNpoint[qv][i].index < bdh.get_nDdataPoints()); ++i)
+        {
+            std::cout << KNNpoint[qv][i].index << "\t" << KNNpoint[qv][i].distance << "\t";
+        }
+        std::cout << endl;
+    }
+
 }
 
 }} // namespace
