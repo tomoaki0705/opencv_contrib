@@ -20,8 +20,8 @@ namespace bdh {
     /**
     * @brief training BDH parameters
     */
-    //template <typename data_t>
-    class BDHtraining
+    template <typename data_t>
+    class CV_EXPORTS BDHtraining
     {
         //for data sample
         int dim;	//!< dimension of dataspace
@@ -81,13 +81,13 @@ namespace bdh {
         * @brief training BDH parameters
         */
         void training(
-            int dim,						//!< [in] dimension
-            unsigned num,						//!< [in] number of sample
-            featureElement** data,					//!< [in] sample data set
+            int _dim,						//!< [in] dimension
+            unsigned _num,						//!< [in] number of sample
+            data_t** data,					//!< [in] sample data set
             const base_t* const baseInput,	//!< [in] base
-            int M,							//!< [in] number of subspace
-            int P,							//!< [in] dimension of subspace
-            int bit,						//!< [in] bits num of hash table
+            int _M,							//!< [in] number of subspace
+            int _P,							//!< [in] dimension of subspace
+            int _bit,						//!< [in] bits num of hash table
             double bit_step = 1.0			//!< [in] training parameter.
         );
 
@@ -97,7 +97,7 @@ namespace bdh {
         void training_ICCV2013(
             int _dim,						//!< [in] dimension
             unsigned _num,					//!< [in] number of sample
-            featureElement** data,					//!< [in] sample data set
+            data_t** data,					//!< [in] sample data set
             const base_t* const baseInput,	//!< [in] base
             int _P,							//!< [in] number of subspace
             int _bit,						//!< [in] bits num of hash table
@@ -171,7 +171,7 @@ namespace bdh {
         );
 
         //“àÏ
-        double innerProduct(const double* base, const featureElement* data) {
+        double innerProduct(const double* base, const data_t* data) {
             double val = 0.0;
             for (int d = 0; d < dim; ++d) {
                 val += base[d] * data[d];
@@ -182,6 +182,7 @@ namespace bdh {
 
     };
 
+    template class CV_EXPORTS BDHtraining<featureElement>;
 } } // namespace
 
 #endif

@@ -93,10 +93,16 @@ TEST(BDH_Classification, Load)
 TEST(BDH_Classification, Classify)
 {
     unsigned int num, dim;
-    featureElement** data = NULL;
+    featureElement **data = NULL, **query = NULL;
     bool readResult = loadFeature(kFeatureFilename, dim, num, data);
     EXPECT_TRUE(readResult);
-    cv::bdh::Index bdh(dim, num, data);
+    cv::bdh::Index<featureElement> bdh(dim, num, data);
+    double searchParam = static_cast<unsigned>(bdh.get_nDdataPoints()*0.001);
+    cout << "read query point set." << endl;
+    unsigned nQuery;
+    loadFeature(kQueryFilename, dim, nQuery, query);
+
+    //bdh.n
 }
 
 }} // namespace

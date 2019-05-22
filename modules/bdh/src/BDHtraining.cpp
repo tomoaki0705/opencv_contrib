@@ -20,11 +20,11 @@ namespace cv {
 namespace bdh {
     int base_t::dim;
 
-//template <typename data_t>
-void BDHtraining::training_ICCV2013(
+template <typename data_t>
+void BDHtraining<data_t>::training_ICCV2013(
 	int _dim,
 	unsigned _num,
-    featureElement** data,
+    data_t** data,
 	const base_t* const baseInput,
 	int _P,
 	int _bit,
@@ -95,11 +95,11 @@ void BDHtraining::training_ICCV2013(
 }
 
 
-//template <typename data_t>
-void BDHtraining::training(
+template <typename data_t>
+void BDHtraining<data_t>::training(
 	int _dim,
 	unsigned _num,
-    featureElement** data,
+    data_t** data,
 	const base_t* const baseInput,
 	int _M,
 	int _P,
@@ -175,8 +175,8 @@ void BDHtraining::training(
 	}
 }
 
-//template <typename data_t>
-void BDHtraining::partitioningDataspace(
+template <typename data_t>
+void BDHtraining<data_t>::partitioningDataspace(
 	const base_t* const base)
 {
 
@@ -217,8 +217,8 @@ void BDHtraining::partitioningDataspace(
 	std::sort(baseSet, baseSet + M);
 }
 
-//template <typename data_t>
-void BDHtraining::partitioningDataspace_ICCV2013(
+template <typename data_t>
+void BDHtraining<data_t>::partitioningDataspace_ICCV2013(
 	const base_t* const base)
 {
 
@@ -250,8 +250,8 @@ void BDHtraining::partitioningDataspace_ICCV2013(
 }
 
 
-//template <typename data_t>
-void BDHtraining::calclateCentroid(
+template <typename data_t>
+void BDHtraining<data_t>::calclateCentroid(
 	float*** subPrjData,
 	double bit_step
 	)
@@ -308,8 +308,8 @@ void BDHtraining::calclateCentroid(
 	delete[] k_means;
 }
 
-//template <typename data_t>
-void BDHtraining::calclateCentroid_ICCV2013(
+template <typename data_t>
+void BDHtraining<data_t>::calclateCentroid_ICCV2013(
 	float*** subPrjData,
 	double bit_step
 	)
@@ -383,8 +383,56 @@ void BDHtraining::calclateCentroid_ICCV2013(
 	delete[] k_means;
 }
 
-//template <typename data_t>
-void BDHtraining::calculateCellVariance(
+template<typename data_t, typename query_t>
+int NearestNeighbor(
+    int dim,
+    int num,
+    data_t** sample,
+    query_t* query
+)
+{
+
+    int NNidx = 0;
+    double NNdis = Distance(dim, sample[0], query);
+    double distance;
+    for (int n = 1; n < num; n++) {
+
+        distance = Distance(dim, sample[n], query, NNdis);
+        if (distance < NNdis) {
+            NNdis = distance;
+            NNidx = n;
+        }
+    }
+    return NNidx;
+}
+
+template<typename data_t, typename query_t>
+void NearestNeighbor(
+    int dim,
+    int num,
+    data_t** sample,
+    query_t* query,
+    point_t<data_t>& NNpoint
+)
+{
+    NNpoint.index = 0;
+    NNpoint.distance = Distance(dim, sample[0], query);
+    double distance;
+    for (int n = 1; n < num; n++)
+    {
+
+        distance = Distance(dim, sample[n], query);
+        if (distance < NNpoint.distance)
+        {
+            NNpoint.distance = distance;
+            NNpoint.index = n;
+        }
+    }
+}
+
+
+template <typename data_t>
+void BDHtraining<data_t>::calculateCellVariance(
 	float*** subPrjData
 	)
 {
@@ -425,8 +473,8 @@ void BDHtraining::calculateCellVariance(
 }
 
 
-//template <typename data_t>
-bool BDHtraining::saveParameters(const string& path)
+template <typename data_t>
+bool BDHtraining<data_t>::saveParameters(const string& path)
 {
 	ofstream ofs(path);
 
@@ -500,8 +548,8 @@ bool BDHtraining::saveParameters(const string& path)
 	return true;
 }
 
-//template <typename data_t>
-void BDHtraining::updateCentroid(
+template <typename data_t>
+void BDHtraining<data_t>::updateCentroid(
 	double bit_step,
 	float*** subPrjData,
 	K_Means<float, double>*& k_means)

@@ -2,7 +2,8 @@
 #define __OPENCV_BDH_HPP__
 
 #include <opencv2/core.hpp>
-
+#include <queue>
+#include <list>
 /**
 * @defgroup bdh Bucket Distance Hash
 * This module computes the nearest neighor distance
@@ -19,7 +20,7 @@ namespace bdh {
     * @param num  number of features
     * @param data actual output
     */
-    CV_EXPORTS_W bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement** &data);
+    CV_EXPORTS bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement** &data);
 
     typedef unsigned collision_t;//!< type of collision
     typedef char* address_t;	 //!< type of address
@@ -33,6 +34,227 @@ namespace bdh {
         address_t addressOfChainList;//!< head address of chain list
     };
 
+    enum search_mode
+    {
+        Radius,
+        NumPoints,
+        NumPoints2
+    };
+
+    /**
+    * @brief type of node. a node coresponde to a centroid
+    */
+    struct node_t {
+        size_t hashKey;//!< hash value
+        double distance; //!< sub bucket distance
+
+                         /**
+                         * @brief compare the distance
+                         * @return is which lesser ?
+                         */
+        bool operator < (
+            const node_t& obj //!< compared object
+            )
+        {
+            return distance < obj.distance;
+        }
+    };
+
+    /**
+    * @brief type of layer. a node coresponde to a subspace
+    */
+    struct layer_t
+    {
+        int k;			//!< number of nodes
+        double restMin;	//!< the minimam rest distance from this layer
+        double restMax;	//!< the maximam rest distance from this layer
+        double gap;		//!< the gap of distance between max and min
+        node_t* node;	//!< nodes.
+
+        void calc_gap()
+        {
+            gap = node[k - 1].distance - node[0].distance;
+        }
+
+        /**
+        * @brief compare the gap
+        * @return is which gap larger ?
+        */
+        bool operator < (const layer_t& obj)
+        {
+            return gap > obj.gap;
+        }
+    };
+
+    //* @brief status of neare bucket search
+    //*/
+    struct status_t
+    {
+    
+    	int m;			//!< index of layer
+    	int nodeIdx;	//!< index of nodes
+    	double dist = 0.0;//!< distance
+    	size_t hashKey;	//!< hash value
+    
+    	/**
+    	* @brief default constructor
+    	*/
+    	status_t()
+    		: m(0)
+    		, nodeIdx(0)
+    		, dist(0.0)
+    		, hashKey(0)
+    	{}
+    
+    	/**
+    	* @brief constructor
+    	*/
+    	status_t(
+    		const int& m,			//!< index of layer
+    		const int& nodeIdx,		//!< index of nodes
+    		const size_t& hashKey,	//!< hash value
+    		const double& dist)		//!< distance
+    		: m(m)
+    		, nodeIdx(nodeIdx)
+    		, dist(dist)
+    		, hashKey(hashKey)
+    	{}
+    
+    	/**
+    	* @brief constructor
+    	*/
+    	status_t(
+    		const int& m			//!< index of layer
+    		)
+    		: m(m)
+    		, nodeIdx(0)
+    		, dist(0.0)
+    		, hashKey(0)
+    	{}
+    };
+    
+    /**
+    * @brief status of neare bucket search
+    */
+    struct hashKey_t {
+
+        size_t hashKey;	//!< hash value
+        double dist;	//!< distance
+
+                        /**
+                        * @brief default constructor
+                        */
+        hashKey_t()
+            :hashKey(0)
+            , dist(0)
+        {}
+
+        /**
+        * @brief constructor. allocate memory of nodeIdx and deep copied.
+        */
+        hashKey_t(
+            size_t hashKey,	//!< hash value
+            double dist)	//!< distance
+            : hashKey(hashKey)
+            , dist(dist)
+        {}
+
+        void setVariable(size_t hashKey, double dist)
+        {
+            this->hashKey = hashKey;
+            this->dist = dist;
+        }
+    };
+
+    /**
+    * @struct point_t
+    * @brief this structure has propaties of a point
+    */
+    template<typename data_t>
+    struct point_t
+    {
+
+        size_t index;			//!< index of data
+        data_t* addressOfpoint;	//!< head address of a data
+        double distance;		//!< ditance from query
+
+                                /**
+                                * @brief default constructor
+                                */
+        point_t()
+        {}
+
+        /**
+        * @brief constructor
+        */
+        point_t(
+            const size_t& index,	//!< [in] the index of point 
+            data_t* addressOfpoint, //!< [in] the address of point 
+            const double& distance	//!< [in] the distance from query
+        )
+            : index(index)
+            , addressOfpoint(addressOfpoint)
+            , distance(distance)
+        {}
+
+        /**
+        * @brief constructor
+        */
+        point_t(
+            const size_t& index,	//!< [in] the index of point 
+            const double& distance	//!< [in] the distance from query
+        )
+            : index(index)
+            , distance(distance)
+        {}
+
+        /**
+        * @brief constructor
+        */
+        point_t(
+            const size_t& index,	//!< [in] the index of point 
+            data_t* addressOfpoint	//!< [in] the address of point
+        )
+            : index(index)
+            , addressOfpoint(addressOfpoint)
+        {}
+
+        /**
+        * @brief set member variables
+        */
+        void setMemberVariable(
+            const size_t& index,	//!< [in] the index of point
+            data_t* addressOfpoint,	//!< [in] the address of point
+            const double& distance	//!< [in] the distance from query
+        )
+        {
+            this->index = index;
+            this->addressOfpoint = addressOfpoint;
+            this->distance = distance;
+        }
+
+        /**
+        * @brief compare the distance
+        * @return is my distance lessor than e's ?
+        */
+        bool operator <(
+            const point_t &e	//!< [in] compare object
+            ) const
+        {
+            return distance < e.distance;
+        }
+
+        /**
+        * @brief compare the distance
+        * @return is my distance equal to e's ?
+        */
+        bool operator ==(
+            const point_t &e	//!< [in] compare object
+            ) const
+        {
+            return index == e.index;
+        }
+    };
     /**
     * @brief hash table
     */
@@ -212,25 +434,6 @@ namespace bdh {
 
     };
 
-    /**
-    * @brief type of node. a node coresponde to a centroid
-    */
-    struct node_t {
-        size_t hashKey;//!< hash value
-        double distance; //!< sub bucket distance
-
-                         /**
-                         * @brief compare the distance
-                         * @return is which lesser ?
-                         */
-        bool operator < (
-            const node_t& obj //!< compared object
-            )
-        {
-            return distance < obj.distance;
-        }
-    };
-
     struct base_t
     {
         static int dim;		//!< dimension of data space (static member)
@@ -353,7 +556,7 @@ namespace bdh {
 
     };
 
-    class Subspace
+    class CV_EXPORTS Subspace
     {
 
     public:
@@ -463,7 +666,8 @@ namespace bdh {
         )const;
     };
 
-    class CV_EXPORTS_W Index
+    template <typename data_t>
+    class CV_EXPORTS Index
     {
     public:
         typedef unsigned index_t;//!< type of index for point
@@ -503,7 +707,7 @@ namespace bdh {
             , hashTable()
         {}
 
-        Index(int dim, unsigned num, featureElement** data);
+        Index(int dim, unsigned num, data_t** data);
 
         ~Index()
         {
@@ -528,7 +732,7 @@ namespace bdh {
         void parameterTuning(
             int dim,				//!< [in] dimension of data space
             index_t num,			//!< [in] number of data points
-            featureElement** const data,	//!< [in] sample points for training
+            data_t** const data,	//!< [in] sample points for training
             base_t* const base,		//!< [in] base for projectToPCspace
             int M,					//!< [in] number of subspace
             int P,					//!< [in] dimension of subspace
@@ -543,13 +747,47 @@ namespace bdh {
         void parameterTuning_ICCV2013(
             int dim,				//!< [in] dimension of data space
             index_t num,			//!< [in] number of data points
-            featureElement** const data,	//!< [in] sample points for training
+            data_t** const data,	//!< [in] sample points for training
             base_t* const base,		//!< [in] base for projectToPCspace
             int P,					//!< [in] dimension of subspace
             int bit,				//!< [in] bits num of hash table
             double bit_step = 1.0,	//!< [in] training parameter. 0 < bit_step <= bit.
             double sampling_rate = 1.0		//!< [in] training parameter.  0 < rate <= 1.
         );
+
+        ///////////// Search Function ////////////////////////
+
+        void setLayerParam(layer_t * layer, data_t * query) const;
+
+        int NearBucket_R(const double Radius, layer_t * const layer, const status_t & status, std::vector<hashKey_t>& bucketList) const;
+
+        int NearBucket_C(const double & Lbound, const double & Ubound, layer_t * const layer, const status_t & status, std::vector<hashKey_t>& bucketList) const;
+
+        int NearBucket_C_list(const double Rbound, layer_t * const layer, std::list<status_t>& statusQue, std::list<status_t>::iterator * itr, std::vector<hashKey_t>& bucketList) const;
+
+        int searchInBucket(data_t * query, size_t hashKey, std::priority_queue<point_t<data_t>>& NNpointQue) const;
+
+        void linearSearchInNNcandidates(data_t * query, point_t<data_t>* point, int K, double epsilon, std::vector<hashKey_t>& bucketList) const;
+
+        /**
+        * @brief search in Bucket Distance R from query
+        * @return number of points in search area
+        */
+        int NearestNeighbor(
+            data_t* query,
+            point_t<data_t>* point,
+            double searchParam,
+            search_mode searchMode = NumPoints,
+            int K = 1,
+            double epsilon = DBL_MAX
+        )const;
+
+        int getBucketList(
+            data_t* query,
+            double searchParam,
+            search_mode searchMode,
+            std::vector<hashKey_t>& bucketList
+        )const;
 
         ////////// store data points /////////////////
 
@@ -558,7 +796,7 @@ namespace bdh {
         */
         void storePoint(
             index_t num,	//!< [in] number of data points. 
-            featureElement**data	//!< [in] data point set. 
+            data_t**data	//!< [in] data point set. 
         );
 
         /**
@@ -566,13 +804,16 @@ namespace bdh {
         * @return hash value
         */
         size_t hashFunction(
-            featureElement* data	//!< [in] a point 
+            data_t* data	//!< [in] a point 
         );
 
         private:
         void setParameters(const baseset_t * const baseSet, const baseset_t & lestSet);
 
-    };
+        //int NearestNeighbor(data_t * query, point_t<data_t>* point, double searchParam, search_mode searchMode, int K, double epsilon) const;
+
+};
+template class CV_EXPORTS Index<featureElement>;
 }}
 
 #endif

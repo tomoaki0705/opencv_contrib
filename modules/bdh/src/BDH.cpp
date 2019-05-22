@@ -428,28 +428,6 @@ const double deltaRate = 50;
 //
 //}
 //
-/////////////// Search Function ////////////////////////
-//template <typename data_t>
-//int BDH<data_t>::NearestNeighbor(
-//	data_t* query,
-//	point_t<data_t>* point,
-//	double searchParam,
-//	search_mode searchMode,
-//	int K,
-//	double epsilon
-//	)const
-//{
-//
-//	// Generate the Bucket Hash key of the needle (begin)//
-//	vector<hashKey_t> bucketList;
-//	int NNC = getBucketList(query, searchParam, searchMode, bucketList);
-//
-//	// Generate the Bucket Hash key of the needle (end)//
-//	linearSearchInNNcandidates(query, point, K, epsilon, bucketList);
-//
-//	return NNC;// Number of points used to compute the distance
-//}
-//
 ///*4 SearchFunction*/
 ///*4(A) Estimated distance<=Rmax,K Nearest NeighborSearchFunction*/
 //template <typename data_t>
@@ -784,92 +762,7 @@ const double deltaRate = 50;
 //	}
 //}
 //
-//template <typename data_t>
-//int BDH<data_t>::getBucketList(
-//	data_t* query,
-//	double searchParam,
-//	search_mode searchMode,
-//	vector<hashKey_t>& bucketList
-//	)const
-//{
-//
-//	//部分距離を計算し，優先度の高い順にソート
-//	layer_t* layer = new layer_t[M];
-//	for (int m = 0; m < M; ++m)
-//	{
-//		layer[m].node = new node_t[subspace[m].subHashSize + 1];
-//		layer[m].node[subspace[m].subHashSize].distance = DBL_MAX;
-//	}
-//	setLayerParam(layer, query);
-//
-//	unsigned NNC = 0;
-//	status_t status;
-//	switch (searchMode)
-//	{
-//	case Radius:
-//	{
-//		//ハッシュに使っていない基底における重心からの距離を求める
-//		//NumPointsアルゴリズムの場合、バケットの選択に影響しない計算。
-//		//頂点数に対して次元数が大きいほど、冗長になる
-//		double* lestSpaceVal = new double[lestspace.dim];
-//		lestspace.getPCAdata(query, lestSpaceVal);
-//		const double lestSpaceDist = lestspace.getDistanceToCentroid(lestSpaceVal, 0);
-//		delete[] lestSpaceVal;
-//
-//		//Radius以下の距離を探索
-//		NNC = NearBucket_R(searchParam, layer, status, bucketList);
-//
-//		break;
-//	}
-//	case NumPoints:
-//	{
-//		unsigned C = static_cast<unsigned>(searchParam);
-//		bucketList.reserve(C);
-//
-//		for (double Lbound = 0, Ubound = layer[0].restMin + 1.0e-10
-//			; NNC < C
-//			; Ubound += delta)
-//		{
-//			NNC += NearBucket_C(Lbound, Ubound, layer, status, bucketList);
-//			Lbound = Ubound;
-//		}
-//
-//		break;
-//	}
-//
-//	case NumPoints2:
-//	{
-//		unsigned C = static_cast<unsigned>(searchParam);
-//		bucketList.reserve(C);
-//
-//		//前回の探索で打ち切られたルートを再探索
-//		list<status_t> statusQue;
-//		statusQue.push_front(status);//ルートノード
-//		list<status_t>::iterator itr;
-//		for (double Rbound = layer[0].restMin + 1.0e-10
-//			; NNC < C
-//			; Rbound += delta)
-//		{
-//			size_t loop = statusQue.size();
-//			itr = statusQue.begin();
-//			for (size_t l = 0; l < loop; ++l)
-//			{
-//				NNC += NearBucket_C_list(Rbound, layer, statusQue, &itr, bucketList);
-//			}
-//		}
-//		break;
-//	}
-//	}
-//
-//	//探索が終わったのでデリート
-//	for (int m = 0; m < M; ++m)
-//	{
-//		delete[] layer[m].node;
-//	}
-//	delete[] layer;
-//
-//	return NNC;
-//}
+
 //
 //
 //template <typename data_t>
@@ -908,6 +801,346 @@ const double deltaRate = 50;
 
 namespace cv {
 namespace bdh {
+template<typename data_t>
+void cv::bdh::Subspace::setNodeParam(node_t * node, data_t * query)
+{
+
+	double* PCAquery = new double[subDim];
+	getPCAdata(query, PCAquery);
+
+	for (int b = 0; b < subHashSize; ++b)
+	{
+		node[b].distance = getDistanceToCentroid(PCAquery, b);
+		node[b].hashKey = hashKey[b];
+	}
+	std::sort(node, node + subHashSize);
+
+	delete[] PCAquery;
+}
+
+template <typename data_t>
+void Index<data_t>::setLayerParam(
+    layer_t* layer,
+    data_t* query
+) const {
+
+    layer_t* layer_p = layer;
+    layer_t* layer_p_end = layer + M;
+    for (int m = 0; layer_p != layer_p_end; ++m, ++layer_p)
+    {
+        layer_p->k = subspace[m].subHashSize;
+        subspace[m].setNodeParam(layer_p->node, query);
+        layer_p->calc_gap();
+    }
+    std::sort(layer, layer + M);
+
+    //m番目の部分空間からの残り距離の最大と最小を計算
+    double distRestMin = 0;
+    double distRestMax = 0;
+    layer_p_end = layer - 1;
+    for (layer_p = layer + M - 1; layer_p != layer_p_end; --layer_p)
+    {
+        layer_p->restMin = distRestMin += layer_p->node[0].distance;
+        layer_p->restMax = distRestMax += layer_p->node[layer_p->k - 1].distance;
+    }
+
+}
+
+template <typename data_t>
+int Index<data_t>::NearBucket_R(
+    const double Radius,//探索半径
+    layer_t* const layer,//クエリから求めたレイヤごとの部分距離情報
+    const status_t& status,//ノードの状態を表す
+    vector<hashKey_t>& bucketList //![out] collect hash key of buckets near than Radius from query
+)const
+{
+    const int m_plus1 = status.m + 1;
+
+    int count = 0;
+
+    if (m_plus1 == M)
+    {
+        size_t hashKey;
+        index_t collision;
+        node_t* node = layer[status.m].node;
+        const double layerBound = Radius - status.dist;
+        for (; node->distance <= layerBound; ++node)
+        {
+            hashKey = status.hashKey + node->hashKey;
+
+            collision = hashTable.getCollision(hashKey);
+
+            if (collision > 0)
+            {
+                count += collision;
+                bucketList.push_back(
+                    hashKey_t(hashKey, status.dist + node->distance)
+                );
+            }
+        }
+    }
+    else
+    {
+        status_t statusNext(m_plus1);
+        node_t* node = layer[status.m].node;
+
+        const double layerBound = Radius - status.dist - layer[m_plus1].restMin;
+        for (; node->distance <= layerBound; ++node)
+        {
+            statusNext.hashKey = status.hashKey + node->hashKey;
+            statusNext.dist = status.dist + node->distance;
+
+            count += NearBucket_R(
+                Radius,
+                layer,
+                statusNext,
+                bucketList
+            );
+        }
+    }
+
+    return count;
+}
+
+template <typename data_t>
+int Index<data_t>::NearBucket_C(
+    const double& Lbound,//探索下限
+    const double& Ubound,//探索上限
+    layer_t* const layer,//クエリから求めたレイヤごとの部分距離情報
+    const status_t& status,
+    vector<hashKey_t>& bucketList
+) const
+{
+
+    const int m_plus1 = status.m + 1;
+    int count = 0;
+
+    if (m_plus1 == M)
+    {
+        size_t hashKey;
+        hashKey_t Key;
+        address_t bucket_p;
+
+        const double layerLowerBound = Lbound - status.dist;
+        const double layerUpperBound = Ubound - status.dist;
+        node_t* node = layer[status.m].node;
+        for (; node->distance <= layerLowerBound; ++node) {}
+        for (; node->distance <= layerUpperBound; ++node)
+        {
+            hashKey = status.hashKey + node->hashKey;
+            bucket_p = hashTable.getPointer(hashKey);
+            if (bucket_p)
+            {
+                Key.setVariable(hashKey, status.dist + node->distance);
+                bucketList.push_back(Key);
+                count += *reinterpret_cast<collision_t*>(bucket_p);
+            }
+        }
+    }
+    else
+    {
+        const double layerLowerBound = Lbound - status.dist - layer[m_plus1].restMax;
+        const double layerUpperBound = Ubound - status.dist - layer[m_plus1].restMin;
+
+        status_t statusNext(m_plus1);
+
+        node_t* node = layer[status.m].node;
+        for (; node->distance <= layerLowerBound; ++node) {}
+        for (; node->distance <= layerUpperBound; ++node)
+        {
+            statusNext.hashKey = status.hashKey + node->hashKey;
+            statusNext.dist = status.dist + node->distance;
+
+            count += NearBucket_C(
+                Lbound, Ubound,
+                layer, statusNext, bucketList
+            );
+
+        }
+
+    }
+
+    return count;
+}
+
+template <typename data_t>
+int Index<data_t>::NearBucket_C_list(
+    const double Rbound,//探索半径
+    layer_t* const layer,//クエリから求めたレイヤごとの部分距離情報
+    std::list<status_t>& statusQue,//探索途中のノードを保持
+    std::list<status_t>::iterator* itr, //ノードの状態を表す
+    std::vector<hashKey_t>& bucketList
+) const
+{
+
+    const int m = (*itr)->m;
+    const int m_plus1 = m + 1;
+    node_t* const node = layer[m].node;
+
+    int count = 0;
+    double layerBound = Rbound - (*itr)->dist;
+    int i = (*itr)->nodeIdx;
+    if (m_plus1 == M)
+    {
+        size_t hashKey;
+        index_t collision;
+
+        for (; node[i].distance <= layerBound; ++i)
+        {
+            hashKey = (*itr)->hashKey + node[i].hashKey;
+            collision = hashTable.getCollision(hashKey);
+            if (collision > 0)
+            {
+                bucketList.push_back(
+                    hashKey_t(hashKey, (*itr)->dist + node[i].distance)
+                );
+                count += collision;
+            }
+        }
+    }
+    else
+    {
+        layerBound -= layer[m_plus1].restMin;
+
+        status_t statusNext(m_plus1);
+        list<status_t>::iterator itr_next;
+        for (; node[i].distance <= layerBound; ++i) {
+
+            statusNext.hashKey = (*itr)->hashKey + node[i].hashKey;
+            statusNext.dist = (*itr)->dist + node[i].distance;
+            statusQue.push_front(statusNext);
+
+            itr_next = statusQue.begin();
+            count += NearBucket_C_list(
+                Rbound, layer, statusQue, &itr_next, bucketList
+            );
+        }
+    }
+
+    //すべてのノードにアクセスしたか
+    if (i == layer[m].k)
+    {
+        //ノードを消して次へ
+        statusQue.erase((*itr)++);
+    }
+    else
+    {
+        //ノードの状態を更新して次へ
+        (*itr)->nodeIdx = i;
+        ++(*itr);
+    }
+
+    return count;
+}
+
+
+template <typename data_t>
+int Index<data_t>::searchInBucket(
+    data_t* query,
+    size_t hashKey,
+    std::priority_queue<point_t<data_t>>& NNpointQue
+) const {
+
+    bin_t bin;
+    hashTable.getBin(hashKey, bin);
+
+    /*set point's pointer*/
+    collision_t coll = bin.collision;
+    address_t addr = bin.addressOfChainList;
+    address_t addr_end = addr + coll*entrySize;
+    double KNNdist = NNpointQue.top().distance;
+
+    double dist;
+    data_t* data;
+    data_t* query_p;
+    data_t* query_end = query + dim;
+    while (addr != addr_end)
+    {
+        /*Distance Calculation*/
+        query_p = query;
+        data = reinterpret_cast<data_t*>(addr);
+        dist = 0.0;
+        while ((query_p != query_end) && (dist < KNNdist))
+        {
+            dist += NORM((*query_p++) - (*data++));
+        }
+
+        if (dist < KNNdist)
+        {
+            NNpointQue.pop();
+
+            NNpointQue.push(
+                point_t<data_t>(
+                    *reinterpret_cast<index_t*>(addr + pointSize),
+                    reinterpret_cast<data_t*>(addr),
+                    dist)
+            );
+
+            KNNdist = NNpointQue.top().distance;
+        }
+        addr += entrySize;
+    }
+
+    return coll;
+}
+
+///////////// Search Function ////////////////////////
+template <typename data_t>
+void Index<data_t>::linearSearchInNNcandidates(
+    data_t* query,
+    point_t<data_t>* point,
+    int K,
+    double epsilon,
+    std::vector<hashKey_t>& bucketList
+) const
+{
+    //生成されたハッシュキーを元にバケットを参照して最近傍点を探索 start//
+    priority_queue<point_t<data_t>> NNpointQue;
+    //最近傍点保持用のヒープ木を初期化
+    for (int i = 0; i < K; ++i)
+    {
+        NNpointQue.push(point_t<data_t>(-1, epsilon));
+    }
+
+    //見つけてきたハッシュキーを参照して最近傍点を探索する
+    vector<hashKey_t>::iterator keyList_itr = bucketList.begin();
+    vector<hashKey_t>::iterator keyList_itr_end = bucketList.end();
+    for (; keyList_itr != keyList_itr_end; ++keyList_itr)
+    {
+        searchInBucket(query, (*keyList_itr).hashKey, NNpointQue);
+    }
+    //生成されたハッシュキーを元にバケットを参照して最近傍点を探索 end//
+
+    //優先度付きキュー内の最近傍点を返却用引数にコピー
+    for (int i = K - 1; i >= 0; --i)
+    {
+        point[i] = NNpointQue.top();
+        NNpointQue.pop();
+    }
+}
+
+
+template <typename data_t>
+int Index<data_t>::NearestNeighbor(
+    data_t* query,
+    point_t<data_t>* point,
+    double searchParam,
+    search_mode searchMode,
+    int K,
+    double epsilon
+)const
+{
+
+    // Generate the Bucket Hash key of the needle (begin)//
+    vector<hashKey_t> bucketList;
+    int NNC = getBucketList(query, searchParam, searchMode, bucketList);
+
+    // Generate the Bucket Hash key of the needle (end)//
+    linearSearchInNNcandidates(query, point, K, epsilon, bucketList);
+
+    return NNC;// Number of points used to compute the distance
+}
+
 
 bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement ** & data)
 {
@@ -936,7 +1169,8 @@ bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement
     return true;
 }
 
-void Index::setParameters(const baseset_t* const baseSet, const baseset_t& lestSet)
+template <typename data_t>
+void Index<data_t>::setParameters(const baseset_t* const baseSet, const baseset_t& lestSet)
 {
     subspace = new Subspace[M];
     size_t rank = 1;
@@ -971,7 +1205,8 @@ void Index::setParameters(const baseset_t* const baseSet, const baseset_t& lestS
 
 }
 
-void Index::parameterTuning_ICCV2013(int _dim, index_t num, featureElement ** const data, base_t * const base, int _P, int _bit, double bit_step, double sampling_rate)
+template <typename data_t>
+void Index<data_t>::parameterTuning_ICCV2013(int _dim, index_t num, data_t ** const data, base_t * const base, int _P, int _bit, double bit_step, double sampling_rate)
 {
 
     dim = _dim;
@@ -980,7 +1215,7 @@ void Index::parameterTuning_ICCV2013(int _dim, index_t num, featureElement ** co
     hashSize = (size_t(1) << bit);//hash size is 2^bit
     //Subspace::dim = dim;
 
-    pointSize = sizeof(featureElement)*dim;//byte size of a point's value
+    pointSize = sizeof(data_t)*dim;//byte size of a point's value
     entrySize = pointSize + sizeof(index_t);//byte size to entry a point into hash table
 
     variance = 0;
@@ -992,12 +1227,12 @@ void Index::parameterTuning_ICCV2013(int _dim, index_t num, featureElement ** co
 
     hashTable.initialize(entrySize, hashSize);
 
-    BDHtraining BDHtrainer;
+    BDHtraining<featureElement> BDHtrainer;
 
     if (sampling_rate < 1.0)
     {//use a part of data set for training
 
-        featureElement** l_data = new featureElement*[num];
+        data_t** l_data = new data_t*[num];
         index_t l_num = 0;
 
         double tmp = 0.0;
@@ -1036,7 +1271,8 @@ void Index::parameterTuning_ICCV2013(int _dim, index_t num, featureElement ** co
 
 }
 
-Index::Index(int dim, unsigned num, featureElement ** data)
+template <typename data_t>
+Index<data_t>::Index(int dim, unsigned num, data_t** data)
     : dim(dim)
     , M(0)
     , bit(0)
@@ -1081,7 +1317,8 @@ Index::Index(int dim, unsigned num, featureElement ** data)
 
 }
 
-void Index::storePoint(index_t num, featureElement** data)
+template <typename data_t>
+void Index<data_t>::storePoint(index_t num, data_t** data)
 {
 	//alloc workspace
 	collision_t* collision = new collision_t[hashSize];
@@ -1154,7 +1391,8 @@ size_t Subspace::getSubHashValue(
 	return hashKey[idx];
 }
 
-size_t Index::hashFunction(featureElement* data)
+template <typename data_t>
+size_t Index<data_t>::hashFunction(data_t* data)
 {
 
 	size_t hashKey = 0;
@@ -1165,5 +1403,91 @@ size_t Index::hashFunction(featureElement* data)
 	return hashKey;
 }
 
+template <typename data_t>
+int Index<data_t>::getBucketList(
+	data_t* query,
+	double searchParam,
+	search_mode searchMode,
+	std::vector<hashKey_t>& bucketList
+	)const
+{
+
+	//部分距離を計算し，優先度の高い順にソート
+	layer_t* layer = new layer_t[M];
+	for (int m = 0; m < M; ++m)
+	{
+		layer[m].node = new node_t[subspace[m].subHashSize + 1];
+		layer[m].node[subspace[m].subHashSize].distance = DBL_MAX;
+	}
+	setLayerParam(layer, query);
+
+	unsigned NNC = 0;
+	status_t status;
+	switch (searchMode)
+	{
+	case Radius:
+	{
+		//ハッシュに使っていない基底における重心からの距離を求める
+		//NumPointsアルゴリズムの場合、バケットの選択に影響しない計算。
+		//頂点数に対して次元数が大きいほど、冗長になる
+		double* lestSpaceVal = new double[lestspace.dim];
+		lestspace.getPCAdata(query, lestSpaceVal);
+		const double lestSpaceDist = lestspace.getDistanceToCentroid(lestSpaceVal, 0);
+		delete[] lestSpaceVal;
+
+		//Radius以下の距離を探索
+		NNC = NearBucket_R(searchParam, layer, status, bucketList);
+
+		break;
+	}
+	case NumPoints:
+	{
+		unsigned C = static_cast<unsigned>(searchParam);
+		bucketList.reserve(C);
+
+		for (double Lbound = 0, Ubound = layer[0].restMin + 1.0e-10
+			; NNC < C
+			; Ubound += delta)
+		{
+			NNC += NearBucket_C(Lbound, Ubound, layer, status, bucketList);
+			Lbound = Ubound;
+		}
+
+		break;
+	}
+
+	case NumPoints2:
+	{
+		unsigned C = static_cast<unsigned>(searchParam);
+		bucketList.reserve(C);
+
+		//前回の探索で打ち切られたルートを再探索
+		list<status_t> statusQue;
+		statusQue.push_front(status);//ルートノード
+		list<status_t>::iterator itr;
+		for (double Rbound = layer[0].restMin + 1.0e-10
+			; NNC < C
+			; Rbound += delta)
+		{
+			size_t loop = statusQue.size();
+			itr = statusQue.begin();
+			for (size_t l = 0; l < loop; ++l)
+			{
+				NNC += NearBucket_C_list(Rbound, layer, statusQue, &itr, bucketList);
+			}
+		}
+		break;
+	}
+	}
+
+	//探索が終わったのでデリート
+	for (int m = 0; m < M; ++m)
+	{
+		delete[] layer[m].node;
+	}
+	delete[] layer;
+
+	return NNC;
+}
 } // bdh
 } // cv
