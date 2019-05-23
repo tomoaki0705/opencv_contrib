@@ -21,6 +21,7 @@ namespace bdh {
     * @param data actual output
     */
     CV_EXPORTS bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement** &data);
+    CV_EXPORTS bool readCorrectClass(const std::string& filename, std::vector<int>& correctClass);
 
     typedef unsigned collision_t;//!< type of collision
     typedef char* address_t;	 //!< type of address
@@ -820,7 +821,7 @@ namespace bdh {
 
         //int NearestNeighbor(data_t * query, point_t<data_t>* point, double searchParam, search_mode searchMode, int K, double epsilon) const;
 
-};
+    };
 template class CV_EXPORTS Index<featureElement>;
 }}
 

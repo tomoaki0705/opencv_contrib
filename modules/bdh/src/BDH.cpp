@@ -1141,6 +1141,26 @@ int Index<data_t>::NearestNeighbor(
     return NNC;// Number of points used to compute the distance
 }
 
+bool readCorrectClass(const std::string& filename, std::vector<int>& correctClass)
+{
+    ifstream ifs(filename, ios::in);
+    if (ifs.is_open() == false)
+    {
+        return false;
+    }
+    correctClass.clear();
+
+    while (ifs.eof() == false)
+    {
+        int index, classNumber;
+        ifs >> index;
+        ifs >> classNumber;
+        assert(correctClass.size() == index);
+        correctClass.push_back(classNumber);
+    }
+
+    ifs.close();
+}
 
 bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement ** & data)
 {
@@ -1343,6 +1363,7 @@ Index<data_t>::Index(const std::string & featureFilename, const std::string & pc
     {
         return;
     }
+    dim = dimension;
 
     // copy PCA direction to base_t for BDH
     const PC_t* pcDir = pca.getPCdir();

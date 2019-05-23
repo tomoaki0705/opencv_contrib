@@ -122,6 +122,10 @@ TEST(BDH_Classification, Classify)
     }
     double endTime = getTickCount();
 
+    std::vector<int> reference;
+    bool classResult = readCorrectClass(TS::ptr()->get_data_path() + "bdh/correctClass.txt", reference);
+
+
     for (unsigned qv = 0; qv < nQuery; ++qv)
     {
         std::cout << "query index : " << qv << "\tNNC : " << NNC[qv] << endl;
