@@ -1317,6 +1317,222 @@ Index<data_t>::Index(int dim, unsigned num, data_t** data)
 
 }
 
+template<typename data_t>
+Index<data_t>::Index(const std::string & featureFilename, const std::string & pcaFilename, const std::string &parameterFilename)
+    : dim(0)
+    , M(0)
+    , bit(0)
+    , delta(0.0)
+    , pointSize(0)
+    , entrySize(0)
+    , hashSize(0)
+    , subspace(nullptr)
+    , hashTable()
+{
+    PrincipalComponentAnalysis pca;
+    bool loadResult = pca.loadPCA(pcaFilename);
+    if (loadResult == false)
+    {
+        return;
+    }
+
+    unsigned int num, dimension;
+    featureElement** data;
+    loadResult = readBinary(featureFilename, dimension, num, data);
+    if (loadResult == false)
+    {
+        return;
+    }
+
+    // copy PCA direction to base_t for BDH
+    const PC_t* pcDir = pca.getPCdir();
+    base_t* base = new base_t[dim];
+    for (int d = 0; d < dim; ++d)
+    {
+        base[d].mean = pcDir[d].mean;
+        base[d].variance = pcDir[d].variance;
+        base[d].direction = new double[dim];
+        memcpy(base[d].direction, pcDir[d].direction, sizeof(double)*dim);
+    }
+
+    cout << "training Start ." << endl;
+    // train parameters
+    if (loadParameters(parameterFilename) == false)
+    {
+        parameterTuning_ICCV2013(dim, num, data, base, 10, 13, 0.1, 1.0);
+        saveParameters(parameterFilename);
+    }
+
+    //delete base
+    for (int d = 0; d < dim; ++d)
+    {
+        delete[] base[d].direction;
+    }
+    delete[] base;
+
+    // entory data points into hash table
+    storePoint(num, data);
+}
+
+template <typename data_t>
+bool Index<data_t>::loadParameters(
+    const std::string& path
+)
+{
+
+    ifstream ifs(path);
+    if (ifs.is_open() == false)
+    {
+        return false;
+    }
+
+    ifs >> dim
+        >> M
+        >> P
+        >> bit
+        >> delta
+        >> pointSize
+        >> entrySize
+        >> hashSize
+        >> variance;
+
+    Subspace::dim = dim;
+
+    subHashSizeMax = 0;
+    subspace = new Subspace[M];
+    for (int m = 0; m < M; ++m) {
+        subspace[m].subDim = P;
+
+        ifs >> subspace[m].subHashSize
+            >> subspace[m].variance;
+
+        if (subspace[m].subHashSize > subHashSizeMax)
+        {
+            subHashSizeMax = subspace[m].subHashSize;
+        }
+
+        subspace[m].base = new double*[P];
+        for (int sd = 0; sd < P; ++sd)
+        {
+            subspace[m].base[sd] = new double[dim];
+            for (int d = 0; d < dim; ++d)
+            {
+                ifs >> subspace[m].base[sd][d];
+            }
+        }
+
+        subspace[m].cellVariance = new double[subspace[m].subHashSize];
+        subspace[m].hashKey = new size_t[subspace[m].subHashSize];
+        subspace[m].centroid = new double*[subspace[m].subHashSize];
+        for (int i = 0; i < subspace[m].subHashSize; ++i)
+        {
+            ifs >> subspace[m].cellVariance[i] >> subspace[m].hashKey[i];
+
+            subspace[m].centroid[i] = new double[P];
+            for (int d = 0; d < P; ++d)
+            {
+                ifs >> subspace[m].centroid[i][d];
+            }
+        }
+    }
+
+    ifs >> lestspace.subDim
+        >> lestspace.variance;
+
+    lestspace.centroid = new double*[1];
+    lestspace.centroid[0] = new double[lestspace.subDim];
+    for (int sd = 0; sd < lestspace.subDim; ++sd)
+    {
+        ifs >> lestspace.centroid[0][sd];
+    }
+    lestspace.cellVariance = new double[1];
+    lestspace.cellVariance[0] = lestspace.variance;
+
+    lestspace.base = new double*[lestspace.subDim];
+    for (int sd = 0; sd < lestspace.subDim; ++sd)
+    {
+        lestspace.base[sd] = new double[dim];
+        for (int d = 0; d < dim; ++d) {
+            ifs >> lestspace.base[sd][d];
+        }
+    }
+
+    ifs.close();
+
+    hashTable.initialize(entrySize, hashSize);
+    return true;
+}
+
+template <typename data_t>
+bool Index<data_t>::saveParameters(const std::string& path)
+{
+
+    ofstream ofs(path);
+    if (ofs.is_open() == false)
+    {
+        return false;
+    }
+
+    ofs << dim << "\t"
+        << M << "\t"
+        << P << "\t"
+        << bit << "\t"
+        << delta << "\t"
+        << pointSize << "\t"
+        << entrySize << "\t"
+        << hashSize << "\t"
+        << variance << endl;
+
+    for (int m = 0; m < M; ++m)
+    {
+        ofs << subspace[m].subHashSize << "\t"
+            << subspace[m].variance << endl;
+
+        for (int sd = 0; sd < P; ++sd)
+        {
+            for (int d = 0; d < dim; ++d)
+            {
+                ofs << subspace[m].base[sd][d] << "\t";
+            }
+            ofs << endl;
+        }
+
+        for (int i = 0; i < subspace[m].subHashSize; ++i)
+        {
+
+            ofs << subspace[m].cellVariance[i] << "\t" << subspace[m].hashKey[i] << endl;
+
+            for (int d = 0; d < subspace[m].subDim; ++d)
+            {
+                ofs << subspace[m].centroid[i][d] << "\t";
+            }
+
+            ofs << endl;
+        }
+    }
+
+    ofs << lestspace.subDim << "\t"
+        << lestspace.variance << endl;
+    for (int sd = 0; sd < lestspace.subDim; ++sd)
+    {
+        ofs << lestspace.centroid[0][sd] << "\t";
+    }
+    ofs << endl;
+
+    for (int sd = 0; sd < lestspace.subDim; ++sd)
+    {
+        for (int d = 0; d < dim; ++d)
+        {
+            ofs << lestspace.base[sd][d] << "\t";
+        }
+        ofs << endl;
+    }
+
+
+    ofs.close();
+    return true;
+}
+
 template <typename data_t>
 void Index<data_t>::storePoint(index_t num, data_t** data)
 {

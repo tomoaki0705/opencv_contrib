@@ -60,6 +60,14 @@ public:
 		}
 	}
 
+    /*
+    * @brief dimension getter
+    */
+    const int getDimension() const
+    {
+        return dim;
+    }
+
 	/**
 	* @brief pcDir getter
 	* @return pcDir

@@ -709,6 +709,11 @@ namespace bdh {
 
         Index(int dim, unsigned num, data_t** data);
 
+        /**
+        * @brief load from saved file
+        */
+        Index(const std::string & featureFilename, const std::string & pcaFilename, const std::string & parameterFilename);
+
         ~Index()
         {
             delete[] subspace;
@@ -723,6 +728,9 @@ namespace bdh {
         {
             return variance;
         }
+
+        bool loadParameters(const std::string & path);
+        bool saveParameters(const std::string & path);
 
         ////////////////parameterTuning///////////////
 
