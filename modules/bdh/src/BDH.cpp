@@ -1349,21 +1349,22 @@ Index<data_t>::Index(const std::string & featureFilename, const std::string & pc
     , subspace(nullptr)
     , hashTable()
 {
-    PrincipalComponentAnalysis pca;
-    bool loadResult = pca.loadPCA(pcaFilename);
-    if (loadResult == false)
-    {
-        return;
-    }
-
     unsigned int num, dimension;
     featureElement** data;
-    loadResult = readBinary(featureFilename, dimension, num, data);
+    bool loadResult = readBinary(featureFilename, dimension, num, data);
     if (loadResult == false)
     {
         return;
     }
     dim = dimension;
+
+    PrincipalComponentAnalysis pca;
+    loadResult = pca.loadPCA(pcaFilename);
+    if (loadResult == false)
+    {
+        pca.executePCA(dim, num, data);
+        pca.savePCA(pcaFilename);
+    }
 
     // copy PCA direction to base_t for BDH
     const PC_t* pcDir = pca.getPCdir();
