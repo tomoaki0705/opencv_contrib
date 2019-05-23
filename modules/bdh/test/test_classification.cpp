@@ -128,14 +128,11 @@ TEST(BDH_Classification, Classify)
 
     for (unsigned qv = 0; qv < nQuery; ++qv)
     {
-        std::cout << "query index : " << qv << "\tNNC : " << NNC[qv] << endl;
-        for (int i = 0; i < 1 && (KNNpoint[qv][i].index < bdh.get_nDdataPoints()); ++i)
-        {
-            std::cout << KNNpoint[qv][i].index << "\t" << KNNpoint[qv][i].distance << "\t";
-        }
-        std::cout << endl;
+        EXPECT_EQ(NNC[qv], reference[qv]);
     }
+    cout << "average query time : " << ((endTime - startTime) / (cv::getTickFrequency() / 1000.)) / nQuery << " ms" << endl;
 
+    
 }
 
 }} // namespace
