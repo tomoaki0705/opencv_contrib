@@ -547,65 +547,6 @@ Index<data_t>::Index(int dim, unsigned num, data_t** data)
 
 }
 
-template<typename data_t>
-Index<data_t>::Index(const String &featureFilename, const String &pcaFilename, const String &parameterFilename)
-    : dim(0)
-    , M(0)
-    , bit(0)
-    , delta(0.0)
-    , pointSize(0)
-    , entrySize(0)
-    , hashSize(0)
-    , subspace(nullptr)
-    , hashTable()
-{
-    unsigned int num, dimension;
-    featureElement** data;
-    bool loadResult = readBinary(featureFilename, dimension, num, data);
-    if (loadResult == false)
-    {
-        return;
-    }
-    dim = dimension;
-
-    PrincipalComponentAnalysis pca;
-    loadResult = pca.loadPCA(pcaFilename);
-    if (loadResult == false)
-    {
-        pca.executePCA(dim, num, data);
-        pca.savePCA(pcaFilename);
-    }
-
-    // copy PCA direction to base_t for BDH
-    const PC_t* pcDir = pca.getPCdir();
-    base_t* base = new base_t[dim];
-    for (int d = 0; d < dim; ++d)
-    {
-        base[d].mean = pcDir[d].mean;
-        base[d].variance = pcDir[d].variance;
-        base[d].direction = new double[dim];
-        memcpy(base[d].direction, pcDir[d].direction, sizeof(double)*dim);
-    }
-
-    cout << "training Start ." << endl;
-    // train parameters
-    if (loadParameters(parameterFilename) == false)
-    {
-        parameterTuning_ICCV2013(dim, num, data, base, 10, 13, 0.1, 1.0);
-        saveParameters(parameterFilename);
-    }
-
-    //delete base
-    for (int d = 0; d < dim; ++d)
-    {
-        delete[] base[d].direction;
-    }
-    delete[] base;
-
-    // entory data points into hash table
-    storePoint(num, data);
-}
-
 template <typename data_t>
 bool Index<data_t>::loadParameters(
     const String& path

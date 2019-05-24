@@ -710,11 +710,6 @@ namespace bdh {
 
         Index(int dim, unsigned num, data_t** data);
 
-        /**
-        * @brief load from saved file
-        */
-        Index(const String &featureFilename, const String &pcaFilename, const String &parameterFilename);
-
         ~Index()
         {
             delete[] subspace;
