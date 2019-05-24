@@ -98,11 +98,7 @@ TEST(BDH_Classification, Classify)
     featureElement **data = NULL, **query = NULL;
     bool readResult = loadFeature(kFeatureFilename, dim, num, data);
     EXPECT_TRUE(readResult);
-    cv::bdh::Index<featureElement> bdh(
-        TS::ptr()->get_data_path() + "bdh/" + kFeatureFilename
-       ,TS::ptr()->get_data_path() + "bdh/" + kPcaFilename
-       ,TS::ptr()->get_data_path() + "bdh/" + kParameterFilename
-        );
+    cv::bdh::Index<featureElement> bdh(dim, num, data);
     double searchParam = static_cast<unsigned>(bdh.get_nDdataPoints()*0.001);
     cout << "read query point set." << endl;
     unsigned nQuery;
