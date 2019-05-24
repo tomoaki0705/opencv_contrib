@@ -57,15 +57,15 @@ bool superPCA::loadPCA(
 }
 
 //ŽŸŒ³”•Ï‚í‚Á‚½‚çƒƒ‚ƒŠŠm•Û‚µ‚È‚¨‚µ
-void superPCA::resetDimension(int dim)
+void superPCA::resetDimension(int _dim)
 {
-	if (this->dim != dim)
+	if (dim != _dim)
 	{
 		//ƒƒ‚ƒŠ‰ð•ú
 		this->~superPCA();
 
 		//ƒƒ‚ƒŠ‰Šú‰»
-		this->dim = dim;
+		dim = _dim;
 		pcDir = new PC_t[dim];
 		
 		for (int d = 0; d < dim; ++d)

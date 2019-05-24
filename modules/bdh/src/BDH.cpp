@@ -369,6 +369,7 @@ bool readCorrectClass(const std::string& filename, std::vector<int>& correctClas
     }
 
     ifs.close();
+    return true;
 }
 
 bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement ** & data)

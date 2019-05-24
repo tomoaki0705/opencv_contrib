@@ -160,10 +160,10 @@ namespace bdh {
             , dist(dist)
         {}
 
-        void setVariable(size_t hashKey, double dist)
+        void setVariable(size_t _hashKey, double _dist)
         {
-            this->hashKey = hashKey;
-            this->dist = dist;
+            hashKey = _hashKey;
+            dist = _dist;
         }
     };
 
