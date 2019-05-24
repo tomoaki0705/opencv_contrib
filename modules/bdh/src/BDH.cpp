@@ -502,18 +502,8 @@ void Index<data_t>::parameterTuning_ICCV2013(int _dim, index_t num, data_t ** co
 }
 
 template <typename data_t>
-Index<data_t>::Index(int dim, unsigned num, data_t** data)
-    : dim(dim)
-    , M(0)
-    , bit(0)
-    , delta(0.0)
-    , pointSize(0)
-    , entrySize(0)
-    , hashSize(0)
-    , subspace(nullptr)
-    , hashTable()
+void Index<data_t>::Build(int dim, unsigned num, data_t** data)
 {
-
     //Principal Component Analysis
     cout << "calculate PCA ." << endl;
     PrincipalComponentAnalysis pca;
@@ -544,7 +534,21 @@ Index<data_t>::Index(int dim, unsigned num, data_t** data)
 
     // entory data points into hash table
     storePoint(num, data);
+}
 
+template <typename data_t>
+Index<data_t>::Index(int dim, unsigned num, data_t** data)
+    : dim(dim)
+    , M(0)
+    , bit(0)
+    , delta(0.0)
+    , pointSize(0)
+    , entrySize(0)
+    , hashSize(0)
+    , subspace(nullptr)
+    , hashTable()
+{
+    Build(dim, num, data);
 }
 
 template <typename data_t>

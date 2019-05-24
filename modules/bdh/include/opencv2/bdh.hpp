@@ -710,6 +710,8 @@ namespace bdh {
 
         Index(int dim, unsigned num, data_t** data);
 
+        void Build(int dim, unsigned num, data_t ** data);
+
         ~Index()
         {
             delete[] subspace;
