@@ -350,7 +350,7 @@ int Index<data_t>::NearestNeighbor(
     return NNC;// Number of points used to compute the distance
 }
 
-bool readCorrectClass(const std::string& filename, std::vector<int>& correctClass)
+bool readCorrectClass(const String& filename, std::vector<int>& correctClass)
 {
     ifstream ifs(filename, ios::in);
     if (ifs.is_open() == false)
@@ -548,7 +548,7 @@ Index<data_t>::Index(int dim, unsigned num, data_t** data)
 }
 
 template<typename data_t>
-Index<data_t>::Index(const std::string & featureFilename, const std::string & pcaFilename, const std::string &parameterFilename)
+Index<data_t>::Index(const String &featureFilename, const String &pcaFilename, const String &parameterFilename)
     : dim(0)
     , M(0)
     , bit(0)
@@ -608,7 +608,7 @@ Index<data_t>::Index(const std::string & featureFilename, const std::string & pc
 
 template <typename data_t>
 bool Index<data_t>::loadParameters(
-    const std::string& path
+    const String& path
 )
 {
 
@@ -696,7 +696,7 @@ bool Index<data_t>::loadParameters(
 }
 
 template <typename data_t>
-bool Index<data_t>::saveParameters(const std::string& path)
+bool Index<data_t>::saveParameters(const String& path) const
 {
 
     ofstream ofs(path);

@@ -21,7 +21,7 @@ namespace bdh {
     * @param data actual output
     */
     CV_EXPORTS bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement** &data);
-    CV_EXPORTS bool readCorrectClass(const std::string& filename, std::vector<int>& correctClass);
+    CV_EXPORTS bool readCorrectClass(const String& filename, std::vector<int>& correctClass);
 
     typedef unsigned collision_t;//!< type of collision
     typedef char* address_t;	 //!< type of address
@@ -713,7 +713,7 @@ namespace bdh {
         /**
         * @brief load from saved file
         */
-        Index(const std::string & featureFilename, const std::string & pcaFilename, const std::string & parameterFilename);
+        Index(const String &featureFilename, const String &pcaFilename, const String &parameterFilename);
 
         ~Index()
         {
@@ -730,8 +730,8 @@ namespace bdh {
             return variance;
         }
 
-        bool loadParameters(const std::string & path);
-        bool saveParameters(const std::string & path);
+        bool loadParameters(const String & path);
+        bool saveParameters(const String & path) const;
 
         ////////////////parameterTuning///////////////
 
