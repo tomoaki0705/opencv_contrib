@@ -402,46 +402,14 @@ bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement
 template <typename data_t>
 void Index<data_t>::setParameters(const baseset_t* const baseSet, const baseset_t& lestSet)
 {
-    subspace = new Subspace[M];
-    size_t rank = 1;
-
-    for (int m = 0; m < M; ++m)
-    {
-        subspace[m].setParameters(baseSet[m]);
-
-        subspace[m].hashKey = new size_t[subspace[m].subHashSize];
-
-        for (int i = 0; i < subspace[m].subHashSize; ++i)
-        {
-            subspace[m].hashKey[i] = rank*i;
-
-        }
-
-        rank *= subspace[m].subHashSize;
-    }
-
-    lestspace.subDim = lestSet.subDim;
-    lestspace.variance = lestSet.variance;
-    lestspace.centroid = new double*[1];
-    lestspace.centroid[0] = new double[lestSet.subDim];
-
-    lestspace.base = new double*[lestspace.subDim];
-    for (int d = 0; d < lestspace.subDim; ++d)
-    {
-        lestspace.centroid[0][d] = lestSet.base[d].mean;
-        lestspace.base[d] = new double[dim];
-        memcpy(lestspace.base[d], lestSet.base[d].direction, sizeof(double)*dim);
-    }
-
 }
 
-template <typename data_t>
-void Index<data_t>::parameterTuning_ICCV2013(int _dim, index_t num, data_t ** const data, base_t * const base, int _P, int _bit, double bit_step, double sampling_rate)
-{
+//    parameterTuning_ICCV2013(dim, num, data, base,                                        P, 13, M, 0.1, 1.0                                                   , hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace);
+// void training_ICCV2013(int _dim, unsigned _num, data_t** data, const base_t* const baseInput, int _P, int _bit, double bit_step = 1.0
 
-    dim = _dim;
-    P = _P;
-    bit = _bit;
+template <typename data_t>
+void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t * const base, int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, double &variance, HashTable &hashTable, double &delta, Subspace* &subspace, Subspace& lestspace, double bit_step = 1.0, double sampling_rate = 1.0)
+{
     hashSize = (size_t(1) << bit);//hash size is 2^bit
     Subspace::dim = dim;
 
@@ -495,9 +463,39 @@ void Index<data_t>::parameterTuning_ICCV2013(int _dim, index_t num, data_t ** co
     }
 
     M = BDHtrainer.getM();
-    setParameters(
-        BDHtrainer.getBaseSet(), BDHtrainer.getLestSet()
-    );
+    const baseset_t* const baseSet = BDHtrainer.getBaseSet();
+    const baseset_t& lestSet = BDHtrainer.getLestSet();
+
+    subspace = new Subspace[M];
+    size_t rank = 1;
+
+    for (int m = 0; m < M; ++m)
+    {
+        subspace[m].setParameters(baseSet[m]);
+
+        subspace[m].hashKey = new size_t[subspace[m].subHashSize];
+
+        for (int i = 0; i < subspace[m].subHashSize; ++i)
+        {
+            subspace[m].hashKey[i] = rank*i;
+
+        }
+
+        rank *= subspace[m].subHashSize;
+    }
+
+    lestspace.subDim = lestSet.subDim;
+    lestspace.variance = lestSet.variance;
+    lestspace.centroid = new double*[1];
+    lestspace.centroid[0] = new double[lestSet.subDim];
+
+    lestspace.base = new double*[lestspace.subDim];
+    for (int d = 0; d < lestspace.subDim; ++d)
+    {
+        lestspace.centroid[0][d] = lestSet.base[d].mean;
+        lestspace.base[d] = new double[dim];
+        memcpy(lestspace.base[d], lestSet.base[d].direction, sizeof(double)*dim);
+    }
 
 }
 
@@ -523,7 +521,7 @@ void Index<data_t>::Build(int dim, unsigned num, data_t** data)
 
     cout << "training Start ." << endl;
     // train parameters
-    parameterTuning_ICCV2013(dim, num, data, base, 10, 13, 0.1, 1.0);
+    parameterTuning_ICCV2013(dim, num, data, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace, 0.1, 1.0);
 
     //delete base
     for (int d = 0; d < dim; ++d)
@@ -540,6 +538,7 @@ template <typename data_t>
 Index<data_t>::Index(int dim, unsigned num, data_t** data)
     : dim(dim)
     , M(0)
+    , P(10)
     , bit(0)
     , delta(0.0)
     , pointSize(0)

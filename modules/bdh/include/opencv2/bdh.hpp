@@ -667,12 +667,11 @@ namespace bdh {
         )const;
     };
 
+    typedef unsigned index_t;//!< type of index for point
+
     template <typename data_t>
     class CV_EXPORTS Index
     {
-    public:
-        typedef unsigned index_t;//!< type of index for point
-
     private:
 
         int dim;			//!< dimension of dataspace
@@ -699,6 +698,7 @@ namespace bdh {
         Index()
             : dim(0)
             , M(0)
+            , P(10)
             , bit(0)
             , delta(0.0)
             , pointSize(0)
@@ -729,37 +729,6 @@ namespace bdh {
 
         bool loadParameters(const String & path);
         bool saveParameters(const String & path) const;
-
-        ////////////////parameterTuning///////////////
-
-        /**
-        * @brief parameterTuning parameters for hashing
-        */
-        void parameterTuning(
-            int dim,				//!< [in] dimension of data space
-            index_t num,			//!< [in] number of data points
-            data_t** const data,	//!< [in] sample points for training
-            base_t* const base,		//!< [in] base for projectToPCspace
-            int M,					//!< [in] number of subspace
-            int P,					//!< [in] dimension of subspace
-            int bit,				//!< [in] bits num of hash table
-            double bit_step = 1.0,	//!< [in] training parameter. 0 < bit_step <= bit.
-            double sampling_rate = 1.0		//!< [in] training parameter.  0 < rate <= 1.
-        );
-
-        /**
-        * @brief parameterTuning parameters for hashing
-        */
-        void parameterTuning_ICCV2013(
-            int dim,				//!< [in] dimension of data space
-            index_t num,			//!< [in] number of data points
-            data_t** const data,	//!< [in] sample points for training
-            base_t* const base,		//!< [in] base for projectToPCspace
-            int P,					//!< [in] dimension of subspace
-            int bit,				//!< [in] bits num of hash table
-            double bit_step = 1.0,	//!< [in] training parameter. 0 < bit_step <= bit.
-            double sampling_rate = 1.0		//!< [in] training parameter.  0 < rate <= 1.
-        );
 
         ///////////// Search Function ////////////////////////
 
