@@ -782,11 +782,6 @@ namespace bdh {
             data_t* data	//!< [in] a point 
         );
 
-        private:
-        void setParameters(const baseset_t * const baseSet, const baseset_t & lestSet);
-
-        //int NearestNeighbor(data_t * query, point_t<data_t>* point, double searchParam, search_mode searchMode, int K, double epsilon) const;
-
     };
 template class CV_EXPORTS Index<featureElement>;
 }}

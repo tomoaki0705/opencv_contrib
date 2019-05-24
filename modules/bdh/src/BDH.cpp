@@ -399,11 +399,6 @@ bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement
     return true;
 }
 
-template <typename data_t>
-void Index<data_t>::setParameters(const baseset_t* const baseSet, const baseset_t& lestSet)
-{
-}
-
 //    parameterTuning_ICCV2013(dim, num, data, base,                                        P, 13, M, 0.1, 1.0                                                   , hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace);
 // void training_ICCV2013(int _dim, unsigned _num, data_t** data, const base_t* const baseInput, int _P, int _bit, double bit_step = 1.0
 
