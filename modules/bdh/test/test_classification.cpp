@@ -105,10 +105,10 @@ TEST(BDH_Classification, Classify)
     loadFeature(kQueryFilename, dim, nQuery, query);
 
     int* NNC = new int[nQuery];
-    point_t<featureElement>** KNNpoint = new point_t<featureElement>*[nQuery];
+    point_t** KNNpoint = new point_t*[nQuery];
     for (unsigned q = 0; q < nQuery; ++q)
     {
-        KNNpoint[q] = new point_t<featureElement>[1];
+        KNNpoint[q] = new point_t[1];
     }
 
     double startTime = getTickCount();

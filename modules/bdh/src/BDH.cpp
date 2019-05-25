@@ -247,7 +247,7 @@ template <typename data_t>
 int Index<data_t>::searchInBucket(
     data_t* query,
     size_t hashKey,
-    std::priority_queue<point_t<data_t>>& NNpointQue
+    std::priority_queue<point_t>& NNpointQue
 ) const {
 
     bin_t bin;
@@ -279,9 +279,8 @@ int Index<data_t>::searchInBucket(
             NNpointQue.pop();
 
             NNpointQue.push(
-                point_t<data_t>(
+                point_t(
                     *reinterpret_cast<index_t*>(addr + pointSize),
-                    reinterpret_cast<data_t*>(addr),
                     dist)
             );
 
@@ -297,18 +296,18 @@ int Index<data_t>::searchInBucket(
 template <typename data_t>
 void Index<data_t>::linearSearchInNNcandidates(
     data_t* query,
-    point_t<data_t>* point,
+    point_t* point,
     int K,
     double epsilon,
     std::vector<hashKey_t>& bucketList
 ) const
 {
     //生成されたハッシュキーを元にバケットを参照して最近傍点を探索 start//
-    priority_queue<point_t<data_t>> NNpointQue;
+    priority_queue<point_t> NNpointQue;
     //最近傍点保持用のヒープ木を初期化
     for (int i = 0; i < K; ++i)
     {
-        NNpointQue.push(point_t<data_t>(-1, epsilon));
+        NNpointQue.push(point_t(-1, epsilon));
     }
 
     //見つけてきたハッシュキーを参照して最近傍点を探索する
@@ -332,7 +331,7 @@ void Index<data_t>::linearSearchInNNcandidates(
 template <typename data_t>
 int Index<data_t>::NearestNeighbor(
     data_t* query,
-    point_t<data_t>* point,
+    point_t* point,
     double searchParam,
     search_mode searchMode,
     int K,

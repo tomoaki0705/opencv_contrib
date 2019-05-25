@@ -171,12 +171,10 @@ namespace bdh {
     * @struct point_t
     * @brief this structure has propaties of a point
     */
-    template<typename data_t>
     struct point_t
     {
 
         size_t index;			//!< index of data
-        data_t* addressOfpoint;	//!< head address of a data
         double distance;		//!< ditance from query
 
                                 /**
@@ -190,19 +188,6 @@ namespace bdh {
         */
         point_t(
             const size_t& index,	//!< [in] the index of point 
-            data_t* addressOfpoint, //!< [in] the address of point 
-            const double& distance	//!< [in] the distance from query
-        )
-            : index(index)
-            , addressOfpoint(addressOfpoint)
-            , distance(distance)
-        {}
-
-        /**
-        * @brief constructor
-        */
-        point_t(
-            const size_t& index,	//!< [in] the index of point 
             const double& distance	//!< [in] the distance from query
         )
             : index(index)
@@ -213,25 +198,21 @@ namespace bdh {
         * @brief constructor
         */
         point_t(
-            const size_t& index,	//!< [in] the index of point 
-            data_t* addressOfpoint	//!< [in] the address of point
+            const size_t& index     //!< [in] the index of point 
         )
             : index(index)
-            , addressOfpoint(addressOfpoint)
         {}
 
         /**
         * @brief set member variables
         */
         void setMemberVariable(
-            const size_t& index,	//!< [in] the index of point
-            data_t* addressOfpoint,	//!< [in] the address of point
-            const double& distance	//!< [in] the distance from query
+            const size_t& _index,	//!< [in] the index of point
+            const double& _distance	//!< [in] the distance from query
         )
         {
-            this->index = index;
-            this->addressOfpoint = addressOfpoint;
-            this->distance = distance;
+            index = _index;
+            distance = _distance;
         }
 
         /**
@@ -740,9 +721,9 @@ namespace bdh {
 
         int NearBucket_C_list(const double Rbound, layer_t * const layer, std::list<status_t>& statusQue, std::list<status_t>::iterator * itr, std::vector<hashKey_t>& bucketList) const;
 
-        int searchInBucket(data_t * query, size_t hashKey, std::priority_queue<point_t<data_t>>& NNpointQue) const;
+        int searchInBucket(data_t * query, size_t hashKey, std::priority_queue<point_t>& NNpointQue) const;
 
-        void linearSearchInNNcandidates(data_t * query, point_t<data_t>* point, int K, double epsilon, std::vector<hashKey_t>& bucketList) const;
+        void linearSearchInNNcandidates(data_t * query, point_t* point, int K, double epsilon, std::vector<hashKey_t>& bucketList) const;
 
         /**
         * @brief search in Bucket Distance R from query
@@ -750,7 +731,7 @@ namespace bdh {
         */
         int NearestNeighbor(
             data_t* query,
-            point_t<data_t>* point,
+            point_t* point,
             double searchParam,
             search_mode searchMode = NumPoints,
             int K = 1,

@@ -412,7 +412,7 @@ void NearestNeighbor(
     int num,
     data_t** sample,
     query_t* query,
-    point_t<data_t>& NNpoint
+    point_t& NNpoint
 )
 {
     NNpoint.index = 0;
@@ -437,7 +437,7 @@ void BDHtraining<data_t>::calculateCellVariance(
 	)
 {
 
-	point_t<double_t> point;
+	point_t point;
 	for (int m = 0; m < M; ++m)
 	{
 		int* count = new int[baseSet[m].k];
