@@ -45,6 +45,24 @@ namespace opencv_test { namespace {
     const cv::String kPcaFilename = "pca.dat";
     const cv::String kParameterFilename = "parameter.bdh";
 
+bool loadFeature(const String &filename, Mat& data)
+{
+    static String dataSetPath = TS::ptr()->get_data_path() + "bdh/";
+    String filePath = dataSetPath + filename;
+    unsigned int dim, num;
+    featureElement **original = NULL;
+    bool result = cv::bdh::readBinary(filePath, dim, num, original);
+    data = cv::Mat(num, dim, CV_8UC1);
+    if (result == true)
+    {
+        for (size_t y = 0; y < num; y++)
+        {
+            memcpy((void*)(data.data + y * data.step), original[y], sizeof(featureElement)*dim);
+        }
+    }
+    return result;
+}
+
 bool loadFeature(const cv::String &filename, unsigned &dim, unsigned &num, featureElement** &data)
 {
     static String dataSetPath = TS::ptr()->get_data_path() + "bdh/";
@@ -96,9 +114,13 @@ TEST(BDH_Classification, Classify)
 {
     unsigned int num, dim;
     featureElement **data = NULL, **query = NULL;
-    bool readResult = loadFeature(kFeatureFilename, dim, num, data);
+    cv::Mat matData;
+    //bool readResult = loadFeature(kFeatureFilename, dim, num, data);
+    bool readResult = loadFeature(kFeatureFilename, matData);
     EXPECT_TRUE(readResult);
-    cv::bdh::Index<featureElement> bdh(dim, num, data);
+    //cv::Mat loadedData = cv::Mat(CV_8UC1, num, dim);
+    cv::bdh::Index<featureElement> bdh;
+    bdh.Build(matData);
     double searchParam = static_cast<unsigned>(bdh.get_nDdataPoints()*0.001);
     cout << "read query point set." << endl;
     unsigned nQuery;

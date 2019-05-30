@@ -494,6 +494,15 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
 }
 
 template <typename data_t>
+void Index<data_t>::Build(InputArray data)
+{
+    cv::Mat _data = data.getMat();
+    cv::PCA pca(_data, Mat(), PCA::DATA_AS_ROW, _data.rows);
+    pca.mean;
+    int i = 0;
+}
+
+template <typename data_t>
 void Index<data_t>::Build(int dim, unsigned num, data_t** data)
 {
     //Principal Component Analysis

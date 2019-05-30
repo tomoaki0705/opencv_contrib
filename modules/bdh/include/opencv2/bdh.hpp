@@ -177,9 +177,9 @@ namespace bdh {
         size_t index;			//!< index of data
         double distance;		//!< ditance from query
 
-                                /**
-                                * @brief default constructor
-                                */
+        /**
+        * @brief default constructor
+        */
         point_t()
         {}
 
@@ -692,6 +692,7 @@ namespace bdh {
         Index(int dim, unsigned num, data_t** data);
 
         void Build(int dim, unsigned num, data_t ** data);
+        void Build(InputArray data);
 
         ~Index()
         {
