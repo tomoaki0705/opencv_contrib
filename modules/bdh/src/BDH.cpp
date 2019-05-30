@@ -398,9 +398,6 @@ bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement
     return true;
 }
 
-//    parameterTuning_ICCV2013(dim, num, data, base,                                        P, 13, M, 0.1, 1.0                                                   , hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace);
-// void training_ICCV2013(int _dim, unsigned _num, data_t** data, const base_t* const baseInput, int _P, int _bit, double bit_step = 1.0
-
 template <typename data_t>
 void parameterTuning(const Mat& originalData, const PCA& featureSpace, enum tuning_method method = cv::bdh::TUNING_ADVANCED_2013)
 {
@@ -413,10 +410,6 @@ void parameterTuning(const Mat& originalData, const PCA& featureSpace, enum tuni
         parameterTuning_ICCV2013(originalData.cols, originalData.rows, data, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace, 0.1, 1.0);
         break;
     }
-    // , int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, double &variance, HashTable &hashTable, double &delta, Subspace* &subspace, Subspace& lestspace, double bit_step = 1.0, double sampling_rate = 1.0
-    //parameterTuning_ICCV2013(dim, num, data, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace, 0.1, 1.0);
-
-
 }
 
 template <typename data_t>
@@ -513,11 +506,11 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
 
 }
 
-template <typename data_t>
-void Index<data_t>::Build(InputArray data)
+template<typename data_t>
+void cv::bdh::Index<data_t>::Build(InputArray data, PCA::Flags order)
 {
     cv::Mat _data = data.getMat();
-    cv::PCA pca(_data, Mat(), PCA::DATA_AS_ROW, _data.rows);
+    cv::PCA pca(_data, Mat(), order, order == PCA::DATA_AS_ROW ? _data.rows : _data.cols);
     pca.mean;
     pca.eigenvectors;
     pca.eigenvalues;

@@ -697,7 +697,7 @@ namespace bdh {
         Index(int dim, unsigned num, data_t** data);
 
         void Build(int dim, unsigned num, data_t ** data);
-        void Build(InputArray data);
+        void Build(InputArray data, enum PCA::Flags order = PCA::DATA_AS_ROW);
 
         ~Index()
         {
