@@ -37,9 +37,14 @@ namespace bdh {
 
     enum search_mode
     {
-        Radius,
-        NumPoints,
-        NumPoints2
+        Radius
+       ,NumPoints
+       ,NumPoints2
+    };
+    enum tuning_method
+    {
+        TUNING_ORIGINAL
+       ,TUNING_ADVANCED_2013
     };
 
     /**
@@ -421,9 +426,9 @@ namespace bdh {
         static int dim;		//!< dimension of data space (static member)
 
         int idx;			//!< index of base
-        double mean;		//!< mean at base direction
-        double variance;	//!< variance at base direction
-        double* direction;	//!< direction of base [dim]
+        double mean;		//!< pca.mean           mean at base direction
+        double variance;	//!< pca.eigenvalues    variance at base direction
+        double* direction;	//!< pca.eigenvectors   direction of base [dim]
 
                             /**
                             * @brief default constructor

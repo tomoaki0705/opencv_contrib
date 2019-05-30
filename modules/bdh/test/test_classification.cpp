@@ -115,12 +115,14 @@ TEST(BDH_Classification, Classify)
     unsigned int num, dim;
     featureElement **data = NULL, **query = NULL;
     cv::Mat matData;
-    //bool readResult = loadFeature(kFeatureFilename, dim, num, data);
     bool readResult = loadFeature(kFeatureFilename, matData);
     EXPECT_TRUE(readResult);
-    //cv::Mat loadedData = cv::Mat(CV_8UC1, num, dim);
+    readResult = loadFeature(kFeatureFilename, dim, num, data);
+    EXPECT_TRUE(readResult);
     cv::bdh::Index<featureElement> bdh;
     bdh.Build(matData);
+    //cv::Mat loadedData = cv::Mat(CV_8UC1, num, dim);
+    //cv::bdh::Index<featureElement> bdh(dim, num, data);
     double searchParam = static_cast<unsigned>(bdh.get_nDdataPoints()*0.001);
     cout << "read query point set." << endl;
     unsigned nQuery;

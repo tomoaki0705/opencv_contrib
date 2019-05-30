@@ -58,6 +58,7 @@ void BDHtraining<data_t>::training_ICCV2013(
 
 			for (d = 0; d < P; ++d)
 			{
+                // pca.eigenvectors
 				subPrjData[m][n][d]
 					= static_cast<float>(
 					innerProduct(baseSet[m].base[d].direction, data[n])
@@ -86,10 +87,10 @@ void BDHtraining<data_t>::training_ICCV2013(
 	for (int d = 0; d < lestSet.subDim; ++d){
 
 		lestSet.base[d] = baseInput[U + d];
-
+        // pca.eigenvectors
 		lestSet.base[d].direction = new double[dim];
 		memcpy(lestSet.base[d].direction, baseInput[U + d].direction, sizeof(double)*dim);
-
+        // pca.eigenvalues
 		lestSet.variance += baseInput[U + d].variance;
 	}
 }
@@ -234,8 +235,10 @@ void BDHtraining<data_t>::partitioningDataspace_ICCV2013(
 	{
 		for (int p = 0; p < P; ++p,++d)
 		{
-			baseSet[m].variance += base[d].variance;
+            // pca.eigenvalues
+            baseSet[m].variance += base[d].variance;
 			baseSet[m].base[baseSet[m].subDim] = base[d];
+            // pca.eigenvectors
 			baseSet[m].base[baseSet[m].subDim].direction = new double[dim];
 
 			memcpy(

@@ -402,6 +402,24 @@ bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement
 // void training_ICCV2013(int _dim, unsigned _num, data_t** data, const base_t* const baseInput, int _P, int _bit, double bit_step = 1.0
 
 template <typename data_t>
+void parameterTuning(const Mat& originalData, const PCA& featureSpace, enum tuning_method method = cv::bdh::TUNING_ADVANCED_2013)
+{
+    switch (method)
+    {
+    case cv::bdh::TUNING_ORIGINAL:
+        break;
+    case cv::bdh::TUNING_ADVANCED_2013:
+    default:
+        parameterTuning_ICCV2013(originalData.cols, originalData.rows, data, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace, 0.1, 1.0);
+        break;
+    }
+    // , int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, double &variance, HashTable &hashTable, double &delta, Subspace* &subspace, Subspace& lestspace, double bit_step = 1.0, double sampling_rate = 1.0
+    //parameterTuning_ICCV2013(dim, num, data, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace, 0.1, 1.0);
+
+
+}
+
+template <typename data_t>
 void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t * const base, int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, double &variance, HashTable &hashTable, double &delta, Subspace* &subspace, Subspace& lestspace, double bit_step = 1.0, double sampling_rate = 1.0)
 {
     hashSize = (size_t(1) << bit);//hash size is 2^bit
@@ -413,7 +431,7 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
     variance = 0;
     for (int d = 0; d < dim; ++d)
     {
-        variance += base[d].variance;
+        variance += base[d].variance;   // pca.eigenvalues
     }
     delta = variance / deltaRate;
 
@@ -479,14 +497,16 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
     }
 
     lestspace.subDim = lestSet.subDim;
-    lestspace.variance = lestSet.variance;
+    lestspace.variance = lestSet.variance;  // pca.eigenvalues
     lestspace.centroid = new double*[1];
     lestspace.centroid[0] = new double[lestSet.subDim];
 
     lestspace.base = new double*[lestspace.subDim];
     for (int d = 0; d < lestspace.subDim; ++d)
     {
+        // pca.mean
         lestspace.centroid[0][d] = lestSet.base[d].mean;
+        // pca.eigenvectors
         lestspace.base[d] = new double[dim];
         memcpy(lestspace.base[d], lestSet.base[d].direction, sizeof(double)*dim);
     }
@@ -499,7 +519,64 @@ void Index<data_t>::Build(InputArray data)
     cv::Mat _data = data.getMat();
     cv::PCA pca(_data, Mat(), PCA::DATA_AS_ROW, _data.rows);
     pca.mean;
+    pca.eigenvectors;
+    pca.eigenvalues;
     int i = 0;
+    int length = _data.rows;
+    dim = _data.cols;
+
+    // copy PCA direction to base_t for BDH
+    base_t* base = new base_t[dim];
+    for (int d = 0; d < dim; ++d)
+    {
+        base[d].mean = (double)pca.mean.at<float>(d);
+        base[d].variance = pca.eigenvalues.at<float>(d);
+        base[d].direction = new double[dim];    // pca.eigenvectors
+        for (size_t x = 0; x < dim; x++)
+        {
+            base[d].direction[x] = (double)((float*)(pca.eigenvectors.data + d * pca.eigenvectors.step))[x];
+        }
+    }
+    featureElement **convertData = new featureElement*[length];
+    for (size_t n = 0; n < length; n++)
+    {
+        convertData[n] = new featureElement[dim];
+        memcpy(convertData[n], (featureElement*)_data.data + n * _data.step, sizeof(featureElement) * dim);
+    }
+
+    parameterTuning_ICCV2013(dim, length, convertData, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace, 0.1, 1.0);
+
+    //delete base
+    if (base != NULL)
+    {
+        for (int d = 0; d < dim; ++d)
+        {
+            if (base[d].direction != NULL)
+            {
+                delete[] base[d].direction;
+                base[d].direction = NULL;
+            }
+        }
+        delete[] base;
+        base = NULL;
+    }
+
+    // entory data points into hash table
+    storePoint(length, convertData);
+
+    if (convertData != NULL)
+    {
+        for (size_t n = 0; n < length; n++)
+        {
+            if (convertData[n] != NULL)
+            {
+                delete[] convertData[n];
+                convertData[n] = NULL;
+            }
+        }
+        delete[] convertData;
+        convertData = NULL;
+    }
 }
 
 template <typename data_t>
@@ -516,9 +593,9 @@ void Index<data_t>::Build(int dim, unsigned num, data_t** data)
     base_t* base = new base_t[dim];
     for (int d = 0; d < dim; ++d)
     {
-        base[d].mean = pcDir[d].mean;
-        base[d].variance = pcDir[d].variance;
-        base[d].direction = new double[dim];
+        base[d].mean = pcDir[d].mean;           // pca.mean
+        base[d].variance = pcDir[d].variance;   // pca.eigenvalues
+        base[d].direction = new double[dim];    // pca.eigenvectors
         memcpy(base[d].direction, pcDir[d].direction, sizeof(double)*dim);
     }
 
