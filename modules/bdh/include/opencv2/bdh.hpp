@@ -613,6 +613,14 @@ namespace bdh {
             double* PCAdata) const;
 
         /**
+        * @brief project data into Principal Component space
+        */
+        template<typename data_t>
+        void getPCAdata(
+            data_t* data,
+            std::vector<double> &PCAdata) const;
+
+        /**
         * @brief get sub hash value
         */
         template<typename data_t>

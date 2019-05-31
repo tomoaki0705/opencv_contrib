@@ -855,7 +855,8 @@ template<typename data_t>
 double Subspace::innerProduct(const std::vector<double>& base, const data_t* data) const
 {
 	double val = 0.0;
-	for (int d = 0; d < dim; ++d){
+	for (int d = 0; d < dim; ++d)
+    {
 		val += base[d] * data[d];
 	}
 	return val;
@@ -864,12 +865,23 @@ double Subspace::innerProduct(const std::vector<double>& base, const data_t* dat
 template<typename data_t>
 void Subspace::getPCAdata(data_t* data, double* PCAdata) const
 {
-	std::vector<std::vector<double> >::const_iterator base_p = baseVector.begin();
-	double* PCAdata_end = PCAdata + subDim;
-	for (; PCAdata != PCAdata_end; ++PCAdata)
-	{
-		*PCAdata = innerProduct(*base_p++, data);
-	}
+    std::vector<std::vector<double> >::const_iterator base_p = baseVector.begin();
+    double* PCAdata_end = PCAdata + subDim;
+    for (; PCAdata != PCAdata_end && base_p != baseVector.end(); PCAdata++)
+    {
+        *PCAdata = innerProduct(*base_p++, data);
+    }
+}
+
+template<typename data_t>
+void Subspace::getPCAdata(data_t * data, std::vector<double>& PCAdata) const
+{
+    std::vector<std::vector<double> >::const_iterator base_p = baseVector.begin();
+    std::vector<double>::const_iterator PCAdata_end = PCAdata.end();
+    for (; PCAdata != PCAdata_end; ++PCAdata)
+    {
+        *PCAdata = innerProduct(*base_p++, data);
+    }
 }
 
 template<typename data_t>
