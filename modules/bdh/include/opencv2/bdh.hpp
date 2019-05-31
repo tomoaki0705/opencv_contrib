@@ -24,14 +24,14 @@ namespace bdh {
     CV_EXPORTS bool readCorrectClass(const String& filename, std::vector<int>& correctClass);
 
     typedef unsigned collision_t;//!< type of collision
-    typedef char* address_t;	 //!< type of address
+    typedef char* address_t;     //!< type of address
 
                                  /**
                                  * @brief a chain list
                                  */
     struct bin_t
     {
-        collision_t collision;		 //!< collision
+        collision_t collision;       //!< collision
         address_t addressOfChainList;//!< head address of chain list
     };
 
@@ -71,11 +71,11 @@ namespace bdh {
     */
     struct layer_t
     {
-        int k;			//!< number of nodes
-        double restMin;	//!< the minimam rest distance from this layer
-        double restMax;	//!< the maximam rest distance from this layer
-        double gap;		//!< the gap of distance between max and min
-        node_t* node;	//!< nodes.
+        int k;          //!< number of nodes
+        double restMin; //!< the minimam rest distance from this layer
+        double restMax; //!< the maximam rest distance from this layer
+        double gap;     //!< the gap of distance between max and min
+        node_t* node;   //!< nodes.
 
         void calc_gap()
         {
@@ -97,46 +97,46 @@ namespace bdh {
     struct status_t
     {
     
-    	int m;			//!< index of layer
-    	int nodeIdx;	//!< index of nodes
-    	double dist = 0.0;//!< distance
-    	size_t hashKey;	//!< hash value
+        int m;          //!< index of layer
+        int nodeIdx;    //!< index of nodes
+        double dist = 0.0;//!< distance
+        size_t hashKey; //!< hash value
     
-    	/**
-    	* @brief default constructor
-    	*/
-    	status_t()
-    		: m(0)
-    		, nodeIdx(0)
-    		, dist(0.0)
-    		, hashKey(0)
-    	{}
+        /**
+        * @brief default constructor
+        */
+        status_t()
+            : m(0)
+            , nodeIdx(0)
+            , dist(0.0)
+            , hashKey(0)
+        {}
     
-    	/**
-    	* @brief constructor
-    	*/
-    	status_t(
-    		const int& m,			//!< index of layer
-    		const int& nodeIdx,		//!< index of nodes
-    		const size_t& hashKey,	//!< hash value
-    		const double& dist)		//!< distance
-    		: m(m)
-    		, nodeIdx(nodeIdx)
-    		, dist(dist)
-    		, hashKey(hashKey)
-    	{}
+        /**
+        * @brief constructor
+        */
+        status_t(
+            const int& m,           //!< index of layer
+            const int& nodeIdx,     //!< index of nodes
+            const size_t& hashKey,  //!< hash value
+            const double& dist)     //!< distance
+            : m(m)
+            , nodeIdx(nodeIdx)
+            , dist(dist)
+            , hashKey(hashKey)
+        {}
     
-    	/**
-    	* @brief constructor
-    	*/
-    	status_t(
-    		const int& m			//!< index of layer
-    		)
-    		: m(m)
-    		, nodeIdx(0)
-    		, dist(0.0)
-    		, hashKey(0)
-    	{}
+        /**
+        * @brief constructor
+        */
+        status_t(
+            const int& m            //!< index of layer
+            )
+            : m(m)
+            , nodeIdx(0)
+            , dist(0.0)
+            , hashKey(0)
+        {}
     };
     
     /**
@@ -144,8 +144,8 @@ namespace bdh {
     */
     struct hashKey_t {
 
-        size_t hashKey;	//!< hash value
-        double dist;	//!< distance
+        size_t hashKey; //!< hash value
+        double dist;    //!< distance
 
                         /**
                         * @brief default constructor
@@ -159,8 +159,8 @@ namespace bdh {
         * @brief constructor. allocate memory of nodeIdx and deep copied.
         */
         hashKey_t(
-            size_t hashKey,	//!< hash value
-            double dist)	//!< distance
+            size_t hashKey, //!< hash value
+            double dist)    //!< distance
             : hashKey(hashKey)
             , dist(dist)
         {}
@@ -179,8 +179,8 @@ namespace bdh {
     struct point_t
     {
 
-        size_t index;			//!< index of data
-        double distance;		//!< ditance from query
+        size_t index;           //!< index of data
+        double distance;        //!< ditance from query
 
         /**
         * @brief default constructor
@@ -192,8 +192,8 @@ namespace bdh {
         * @brief constructor
         */
         point_t(
-            const size_t& index,	//!< [in] the index of point 
-            const double& distance	//!< [in] the distance from query
+            const size_t& index,    //!< [in] the index of point 
+            const double& distance  //!< [in] the distance from query
         )
             : index(index)
             , distance(distance)
@@ -212,8 +212,8 @@ namespace bdh {
         * @brief set member variables
         */
         void setMemberVariable(
-            const size_t& _index,	//!< [in] the index of point
-            const double& _distance	//!< [in] the distance from query
+            const size_t& _index,   //!< [in] the index of point
+            const double& _distance //!< [in] the distance from query
         )
         {
             index = _index;
@@ -225,7 +225,7 @@ namespace bdh {
         * @return is my distance lessor than e's ?
         */
         bool operator <(
-            const point_t &e	//!< [in] compare object
+            const point_t &e    //!< [in] compare object
             ) const
         {
             return distance < e.distance;
@@ -236,7 +236,7 @@ namespace bdh {
         * @return is my distance equal to e's ?
         */
         bool operator ==(
-            const point_t &e	//!< [in] compare object
+            const point_t &e    //!< [in] compare object
             ) const
         {
             return index == e.index;
@@ -251,8 +251,8 @@ namespace bdh {
     private:
         static const size_t collisionSize = sizeof(collision_t); //!< bytes of collision
 
-        size_t entrySize;	 //!< bytes of entry
-        size_t hashSize;	 //!< size of hash table
+        size_t entrySize;    //!< bytes of entry
+        size_t hashSize;     //!< size of hash table
         size_t nEntry;
         address_t* hashTable;//!< hash table
 
@@ -312,7 +312,7 @@ namespace bdh {
         */
         void initialize(
             size_t pointSize,//!< [in] sizeof(data_t)*dim;
-            size_t hashSize	 //!< [in] hash size = 1<<bit;
+            size_t hashSize  //!< [in] hash size = 1<<bit;
         );
 
         /**
@@ -383,7 +383,7 @@ namespace bdh {
         * @return is allocation complete ?
         */
         bool storeEntry(
-            size_t HashValue,	 //!< [in] hash value of point data
+            size_t HashValue,     //!< [in] hash value of point data
             const address_t point//!< [in] the point stored into hash table
         );
 
@@ -399,7 +399,7 @@ namespace bdh {
         * @brief you have to take care of whether allocation of hash table has already completed
         */
         void storeEntryWithoutAlloc(
-            size_t HashValue,	//!< [in] hash value of point data
+            size_t HashValue,    //!< [in] hash value of point data
             const address_t data//!< [in] the point stored into hash table 
         );
 
@@ -423,12 +423,12 @@ namespace bdh {
 
     struct base_t
     {
-        static int dim;		//!< dimension of data space (static member)
+        static int dim;     //!< dimension of data space (static member)
 
-        int idx;			//!< index of base
-        double mean;		//!< pca.mean           mean at base direction
-        double variance;	//!< pca.eigenvalues    variance at base direction
-        double* direction;	//!< pca.eigenvectors   direction of base [dim]
+        int idx;            //!< index of base
+        double mean;        //!< pca.mean           mean at base direction
+        double variance;    //!< pca.eigenvalues    variance at base direction
+        double* direction;  //!< pca.eigenvectors   direction of base [dim]
 
                             /**
                             * @brief default constructor
@@ -474,18 +474,18 @@ namespace bdh {
     */
     struct baseset_t {
 
-        int idx;				//!< index of base set
-        int subDim;				//!< number of base
-        double variance;		//!< sum of variance of base
+        int idx;               //!< index of base set
+        int subDim;            //!< number of base
+        double variance;       //!< sum of variance of base
 
-        base_t* base;			//!< set of base_t[subDim]
+        base_t* base;          //!< set of base_t[subDim]
 
-        int k;					//!< number of centorid = 2^bit
-        double bit;				//!< amount of infomation for this base set = log2(k)
-        double error;			//!< error of quantization = sum of cellVariance
-        double score;			//!< efficiency for incrementint the number of centroid
-        double** centroid;		//!< centroid[k][subDim]
-        double* cellVariance;	//!< variance in cell[k]
+        int k;                 //!< number of centorid = 2^bit
+        double bit;            //!< amount of infomation for this base set = log2(k)
+        double error;          //!< error of quantization = sum of cellVariance
+        double score;          //!< efficiency for incrementint the number of centroid
+        double** centroid;     //!< centroid[k][subDim]
+        double* cellVariance;  //!< variance in cell[k]
 
                                 /**
                                 * @brief default constructor
@@ -547,21 +547,16 @@ namespace bdh {
     {
 
     public:
-        static int dim;		 //!< dimension
-        int subDim;			 //!< dimension of subspace
-        int subHashSize;	 //!< hash size at subspace = 1<<bit
-        double bit;			 //!< information volume
-        double variance;	 //!< sum of variance
-        std::vector<std::vector<double> > baseVector;
-                             //!< base direction[P][dim]
-        //double** base;       //!< base direction[P][dim]
-        std::vector<size_t> hashKeyVector;
-                             //!< hash value of bin corespond to centroid[subHashSize]
-        std::vector<size_t> hashKey;
-                             //!< hash value of bin corespond to centroid[subHashSize]
-        double* cellVariance;//!< variance in cell[subHashSize]
-        std::vector<std::vector<double> > centroidVector;
-        //double** centroid;	 //!< centroid[subHashSize][subDim]
+        static int dim;      //!< dimension
+        int subDim;          //!< dimension of subspace
+        int subHashSize;     //!< hash size at subspace = 1<<bit
+        double bit;          //!< information volume
+        double variance;     //!< sum of variance
+        std::vector<std::vector<double> > baseVector;     //!< base direction[P][dim]
+        std::vector<size_t> hashKeyVector;                //!< hash value of bin corespond to centroid[subHashSize]
+        std::vector<size_t> hashKey;                      //!< hash value of bin corespond to centroid[subHashSize]
+        std::vector<double> cellVariance;                 //!< variance in cell[subHashSize]
+        std::vector<std::vector<double> > centroidVector; //!< centroid[subHashSize][subDim]
 
     public:
 
@@ -573,12 +568,10 @@ namespace bdh {
             , subHashSize(0)
             , bit(0.0)
             , variance(0.0)
-            , cellVariance(nullptr)
         {}
 
         ~Subspace()
         {
-            delete[] cellVariance;
         }
 
         /**
@@ -651,24 +644,24 @@ namespace bdh {
     {
     private:
 
-        int dim;			//!< dimension of dataspace
-        int M;				//!< number of subspace
-        int P;				//!< dimension of subspace
-        int bit;			//!< bits num of hash table
-        double delta;		//!< increment step of search radius for C search
+        int dim;            //!< dimension of dataspace
+        int M;              //!< number of subspace
+        int P;              //!< dimension of subspace
+        int bit;            //!< bits num of hash table
+        double delta;       //!< increment step of search radius for C search
         int subHashSizeMax; //!< max of sub hash size
-        size_t pointSize;	//!< number of data points
-        size_t entrySize;	//!< size of entry = sum of size of index and data point
-        size_t hashSize;	//!< hash size = 2^bit
+        size_t pointSize;   //!< number of data points
+        size_t entrySize;   //!< size of entry = sum of size of index and data point
+        size_t hashSize;    //!< hash size = 2^bit
         double variance;
         Mat originalData;   //!< store the original feature data
 
         std::vector<Subspace> subspaceVector;
                             //!< classes handling parameters of subspace
-        Subspace* subspace;	//!< classes handling parameters of subspace
+        Subspace* subspace; //!< classes handling parameters of subspace
         Subspace  lestspace;//!< classe handling parameters of subspace not which construct the hash table
 
-        HashTable hashTable;	//!< hash table
+        HashTable hashTable;    //!< hash table
 
     public:
 
@@ -757,7 +750,7 @@ namespace bdh {
         * @return hash value
         */
         size_t hashFunction(
-            int index	//!< [in] index-th feature
+            int index    //!< [in] index-th feature
         );
 
     };

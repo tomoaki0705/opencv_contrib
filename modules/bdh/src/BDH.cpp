@@ -14,17 +14,17 @@ template<typename data_t>
 void cv::bdh::Subspace::setNodeParam(node_t * node, data_t * query)
 {
 
-	double* PCAquery = new double[subDim];
-	getPCAdata(query, PCAquery);
+    double* PCAquery = new double[subDim];
+    getPCAdata(query, PCAquery);
 
-	for (int b = 0; b < subHashSize; ++b)
-	{
-		node[b].distance = getDistanceToCentroid(PCAquery, b);
-		node[b].hashKey = hashKey[b];
-	}
-	std::sort(node, node + subHashSize);
+    for (int b = 0; b < subHashSize; ++b)
+    {
+        node[b].distance = getDistanceToCentroid(PCAquery, b);
+        node[b].hashKey = hashKey[b];
+    }
+    std::sort(node, node + subHashSize);
 
-	delete[] PCAquery;
+    delete[] PCAquery;
 }
 
 template <typename data_t>
@@ -808,49 +808,49 @@ bool Index<data_t>::saveParameters(const String& path) const
 template <typename data_t>
 void Index<data_t>::storePoint(/*index_t num, data_t** data*/)
 {
-	//alloc workspace
-	collision_t* collision = new collision_t[hashSize];
-	memset(collision, 0, sizeof(collision_t)*hashSize);
+    //alloc workspace
+    collision_t* collision = new collision_t[hashSize];
+    memset(collision, 0, sizeof(collision_t)*hashSize);
 
-	size_t* hashKey = new size_t[originalData.rows];
-	for (index_t n = 0; n < originalData.rows; ++n)
-	{
-		//get hash value
-		hashKey[n] = hashFunction(n);
-		//increment collision
-		++collision[hashKey[n]];
-	}
+    size_t* hashKey = new size_t[originalData.rows];
+    for (index_t n = 0; n < originalData.rows; ++n)
+    {
+        //get hash value
+        hashKey[n] = hashFunction(n);
+        //increment collision
+        ++collision[hashKey[n]];
+    }
 
-	hashTable.allocTable(collision);
-	delete[] collision;
+    hashTable.allocTable(collision);
+    delete[] collision;
 
-	char* entry = new char[entrySize];
-	if (entry == nullptr)
-	{
-		exit(__LINE__);
-	}
+    char* entry = new char[entrySize];
+    if (entry == nullptr)
+    {
+        exit(__LINE__);
+    }
 
-	for (index_t n = 0; n < originalData.rows; ++n)
-	{
-		memcpy(entry, originalData.row(n).data, pointSize);
-		*reinterpret_cast<index_t*>(entry + pointSize) = n;
+    for (index_t n = 0; n < originalData.rows; ++n)
+    {
+        memcpy(entry, originalData.row(n).data, pointSize);
+        *reinterpret_cast<index_t*>(entry + pointSize) = n;
 
-		hashTable.storeEntryWithoutAlloc(hashKey[n], entry);
-	}
-	delete[] entry;
+        hashTable.storeEntryWithoutAlloc(hashKey[n], entry);
+    }
+    delete[] entry;
 
-	delete[] hashKey;
+    delete[] hashKey;
 }
 
 template<typename data_t>
 double Subspace::innerProduct(const std::vector<double>& base, const data_t* data) const
 {
-	double val = 0.0;
-	for (int d = 0; d < dim; ++d)
+    double val = 0.0;
+    for (int d = 0; d < dim; ++d)
     {
-		val += base[d] * data[d];
-	}
-	return val;
+        val += base[d] * data[d];
+    }
+    return val;
 }
 
 template<typename data_t>
@@ -877,117 +877,117 @@ void Subspace::getPCAdata(data_t * data, std::vector<double>& PCAdata) const
 
 template<typename data_t>
 size_t Subspace::getSubHashValue(
-	const data_t* data
-	) const
+    const data_t* data
+    ) const
 {
 
-	//work space
-	double* PCAdata = new double[subDim];
+    //work space
+    double* PCAdata = new double[subDim];
 
-	getPCAdata(data, PCAdata);
-	int idx = NearestNeighbor(subDim, subHashSize, centroidVector, PCAdata);
-	delete[] PCAdata;
+    getPCAdata(data, PCAdata);
+    int idx = NearestNeighbor(subDim, subHashSize, centroidVector, PCAdata);
+    delete[] PCAdata;
 
-	return hashKey[idx];
+    return hashKey[idx];
 }
 
 template <typename data_t>
 size_t Index<data_t>::hashFunction(int index)
 {
 
-	size_t hashKey = 0;
-	for (int m = 0; m < M; ++m)
-	{
-		hashKey += subspace[m].getSubHashValue(originalData.row(index).data);
-	}
-	return hashKey;
+    size_t hashKey = 0;
+    for (int m = 0; m < M; ++m)
+    {
+        hashKey += subspace[m].getSubHashValue(originalData.row(index).data);
+    }
+    return hashKey;
 }
 
 template <typename data_t>
 int Index<data_t>::getBucketList(
-	data_t* query,
-	double searchParam,
-	search_mode searchMode,
-	std::vector<hashKey_t>& bucketList
-	)const
+    data_t* query,
+    double searchParam,
+    search_mode searchMode,
+    std::vector<hashKey_t>& bucketList
+    )const
 {
 
-	//部分距離を計算し，優先度の高い順にソート
-	layer_t* layer = new layer_t[M];
-	for (int m = 0; m < M; ++m)
-	{
-		layer[m].node = new node_t[subspace[m].subHashSize + 1];
-		layer[m].node[subspace[m].subHashSize].distance = DBL_MAX;
-	}
-	setLayerParam(layer, query);
+    //部分距離を計算し，優先度の高い順にソート
+    layer_t* layer = new layer_t[M];
+    for (int m = 0; m < M; ++m)
+    {
+        layer[m].node = new node_t[subspace[m].subHashSize + 1];
+        layer[m].node[subspace[m].subHashSize].distance = DBL_MAX;
+    }
+    setLayerParam(layer, query);
 
-	unsigned NNC = 0;
-	status_t status;
-	switch (searchMode)
-	{
-	case Radius:
-	{
-		//ハッシュに使っていない基底における重心からの距離を求める
-		//NumPointsアルゴリズムの場合、バケットの選択に影響しない計算。
-		//頂点数に対して次元数が大きいほど、冗長になる
-		double* lestSpaceVal = new double[lestspace.dim];
-		lestspace.getPCAdata(query, lestSpaceVal);
-		const double lestSpaceDist = lestspace.getDistanceToCentroid(lestSpaceVal, 0);
-		delete[] lestSpaceVal;
+    unsigned NNC = 0;
+    status_t status;
+    switch (searchMode)
+    {
+    case Radius:
+    {
+        //ハッシュに使っていない基底における重心からの距離を求める
+        //NumPointsアルゴリズムの場合、バケットの選択に影響しない計算。
+        //頂点数に対して次元数が大きいほど、冗長になる
+        double* lestSpaceVal = new double[lestspace.dim];
+        lestspace.getPCAdata(query, lestSpaceVal);
+        const double lestSpaceDist = lestspace.getDistanceToCentroid(lestSpaceVal, 0);
+        delete[] lestSpaceVal;
 
-		//Radius以下の距離を探索
-		NNC = NearBucket_R(searchParam, layer, status, bucketList);
+        //Radius以下の距離を探索
+        NNC = NearBucket_R(searchParam, layer, status, bucketList);
 
-		break;
-	}
-	case NumPoints:
-	{
-		unsigned C = static_cast<unsigned>(searchParam);
-		bucketList.reserve(C);
+        break;
+    }
+    case NumPoints:
+    {
+        unsigned C = static_cast<unsigned>(searchParam);
+        bucketList.reserve(C);
 
-		for (double Lbound = 0, Ubound = layer[0].restMin + 1.0e-10
-			; NNC < C
-			; Ubound += delta)
-		{
-			NNC += NearBucket_C(Lbound, Ubound, layer, status, bucketList);
-			Lbound = Ubound;
-		}
+        for (double Lbound = 0, Ubound = layer[0].restMin + 1.0e-10
+            ; NNC < C
+            ; Ubound += delta)
+        {
+            NNC += NearBucket_C(Lbound, Ubound, layer, status, bucketList);
+            Lbound = Ubound;
+        }
 
-		break;
-	}
+        break;
+    }
 
-	case NumPoints2:
-	{
-		unsigned C = static_cast<unsigned>(searchParam);
-		bucketList.reserve(C);
+    case NumPoints2:
+    {
+        unsigned C = static_cast<unsigned>(searchParam);
+        bucketList.reserve(C);
 
-		//前回の探索で打ち切られたルートを再探索
-		list<status_t> statusQue;
-		statusQue.push_front(status);//ルートノード
-		list<status_t>::iterator itr;
-		for (double Rbound = layer[0].restMin + 1.0e-10
-			; NNC < C
-			; Rbound += delta)
-		{
-			size_t loop = statusQue.size();
-			itr = statusQue.begin();
-			for (size_t l = 0; l < loop; ++l)
-			{
-				NNC += NearBucket_C_list(Rbound, layer, statusQue, &itr, bucketList);
-			}
-		}
-		break;
-	}
-	}
+        //前回の探索で打ち切られたルートを再探索
+        list<status_t> statusQue;
+        statusQue.push_front(status);//ルートノード
+        list<status_t>::iterator itr;
+        for (double Rbound = layer[0].restMin + 1.0e-10
+            ; NNC < C
+            ; Rbound += delta)
+        {
+            size_t loop = statusQue.size();
+            itr = statusQue.begin();
+            for (size_t l = 0; l < loop; ++l)
+            {
+                NNC += NearBucket_C_list(Rbound, layer, statusQue, &itr, bucketList);
+            }
+        }
+        break;
+    }
+    }
 
-	//探索が終わったのでデリート
-	for (int m = 0; m < M; ++m)
-	{
-		delete[] layer[m].node;
-	}
-	delete[] layer;
+    //探索が終わったのでデリート
+    for (int m = 0; m < M; ++m)
+    {
+        delete[] layer[m].node;
+    }
+    delete[] layer;
 
-	return NNC;
+    return NNC;
 }
 } // bdh
 } // cv

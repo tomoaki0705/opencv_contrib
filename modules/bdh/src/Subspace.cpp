@@ -9,39 +9,39 @@ int Subspace::dim;
 
 void Subspace::setParameters(const baseset_t& baseSet)
 {
-	bit = baseSet.bit;
-	subDim = baseSet.subDim;
-	subHashSize = baseSet.k;
-	variance = baseSet.variance;
+    bit = baseSet.bit;
+    subDim = baseSet.subDim;
+    subHashSize = baseSet.k;
+    variance = baseSet.variance;
 
-	cellVariance = new double[subHashSize];
-	memcpy(cellVariance, baseSet.cellVariance, sizeof(double)*subHashSize);
+    cellVariance = new double[subHashSize];
+    memcpy(cellVariance, baseSet.cellVariance, sizeof(double)*subHashSize);
 
-	for (int h = 0; h < subHashSize; ++h)
-	{
+    for (int h = 0; h < subHashSize; ++h)
+    {
         std::vector<double> stub;
         for (auto i = 0; i < subDim; i++)
         {
             stub.push_back(baseSet.centroid[h][i]);
         }
         centroidVector.push_back(stub);
-	}
+    }
 
-	for (int d = 0; d < subDim; ++d){
+    for (int d = 0; d < subDim; ++d){
         std::vector<double> stub;
         for (auto i = 0; i < dim; i++)
         {
             stub.push_back(baseSet.base[d].direction[i]);
         }
-	}
+    }
 }
 
 void Subspace::clear(){
 
-	if (cellVariance != nullptr){
-		delete[] cellVariance;
-		cellVariance = nullptr;
-	}
+    if (cellVariance != nullptr){
+        delete[] cellVariance;
+        cellVariance = nullptr;
+    }
 }
 
 double Subspace::getDistanceToCentroid(double* PCAquery, int centroidIndex) const
@@ -54,7 +54,7 @@ double Subspace::getDistanceToCentroid(double* PCAquery, int centroidIndex) cons
         t += NORM((*PCAquery++) - (*centroid_p++));
     } while (centroid_p != centroid_p_end);
 
-	return t;
+    return t;
 }
 
 } } // namespace

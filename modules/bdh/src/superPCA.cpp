@@ -8,69 +8,69 @@ using namespace std;
 */
 bool superPCA::savePCA(const string& path)
 {
-	ofstream ofs(path);
-	if (ofs.is_open() == false)
-	{
-		return false;
-	}
+    ofstream ofs(path);
+    if (ofs.is_open() == false)
+    {
+        return false;
+    }
 
-	ofs << dim << endl;
-	for (int d = 0; d < dim; ++d)
-	{
-		ofs << pcDir[d].mean << "\t" << pcDir[d].variance << endl;
-		for (int d2 = 0; d2 < dim; ++d2)
-		{
-			ofs << pcDir[d].direction[d2] << "\t";
-		}
-		ofs << endl;
-	}
+    ofs << dim << endl;
+    for (int d = 0; d < dim; ++d)
+    {
+        ofs << pcDir[d].mean << "\t" << pcDir[d].variance << endl;
+        for (int d2 = 0; d2 < dim; ++d2)
+        {
+            ofs << pcDir[d].direction[d2] << "\t";
+        }
+        ofs << endl;
+    }
 
-	return true;
+    return true;
 }
 
 /**
 * @brief load result of PCA
 */
 bool superPCA::loadPCA(
-	const string& path
-	)
+    const string& path
+    )
 {
-	ifstream ifs(path);
-	if (ifs.is_open() == false)
-	{
-		return false;
-	}
+    ifstream ifs(path);
+    if (ifs.is_open() == false)
+    {
+        return false;
+    }
 
-	ifs >> dim;
-	pcDir = new PC_t[dim];
-	for (int d = 0; d < dim; ++d)
-	{
-		ifs >> pcDir[d].mean >> pcDir[d].variance;
-		pcDir[d].direction = new double[dim];
-		for (int d2 = 0; d2 < dim; ++d2)
-		{
-			ifs >> pcDir[d].direction[d2];
-		}
-	}
+    ifs >> dim;
+    pcDir = new PC_t[dim];
+    for (int d = 0; d < dim; ++d)
+    {
+        ifs >> pcDir[d].mean >> pcDir[d].variance;
+        pcDir[d].direction = new double[dim];
+        for (int d2 = 0; d2 < dim; ++d2)
+        {
+            ifs >> pcDir[d].direction[d2];
+        }
+    }
 
-	return true;
+    return true;
 }
 
 //ŸŒ³”•Ï‚í‚Á‚½‚çƒƒ‚ƒŠŠm•Û‚µ‚È‚¨‚µ
 void superPCA::resetDimension(int _dim)
 {
-	if (dim != _dim)
-	{
-		//ƒƒ‚ƒŠ‰ğ•ú
-		this->~superPCA();
+    if (dim != _dim)
+    {
+        //ƒƒ‚ƒŠ‰ğ•ú
+        this->~superPCA();
 
-		//ƒƒ‚ƒŠ‰Šú‰»
-		dim = _dim;
-		pcDir = new PC_t[dim];
-		
-		for (int d = 0; d < dim; ++d)
-		{
-			pcDir[d].direction = new double[dim];
-		}
-	}
+        //ƒƒ‚ƒŠ‰Šú‰»
+        dim = _dim;
+        pcDir = new PC_t[dim];
+        
+        for (int d = 0; d < dim; ++d)
+        {
+            pcDir[d].direction = new double[dim];
+        }
+    }
 }
