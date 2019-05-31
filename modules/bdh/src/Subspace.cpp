@@ -14,8 +14,10 @@ void Subspace::setParameters(const baseset_t& baseSet)
     subHashSize = baseSet.k;
     variance = baseSet.variance;
 
-    cellVariance = new double[subHashSize];
-    memcpy(cellVariance, baseSet.cellVariance, sizeof(double)*subHashSize);
+    for (size_t i = 0; i < subHashSize; i++)
+    {
+        cellVariance.push_back(baseSet.cellVariance[i]);
+    }
 
     for (int h = 0; h < subHashSize; ++h)
     {
@@ -33,14 +35,6 @@ void Subspace::setParameters(const baseset_t& baseSet)
         {
             stub.push_back(baseSet.base[d].direction[i]);
         }
-    }
-}
-
-void Subspace::clear(){
-
-    if (cellVariance != nullptr){
-        delete[] cellVariance;
-        cellVariance = nullptr;
     }
 }
 

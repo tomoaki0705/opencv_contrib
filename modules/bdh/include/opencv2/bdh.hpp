@@ -575,11 +575,6 @@ namespace bdh {
         }
 
         /**
-        * @brief initialize all member variables
-        */
-        void clear();
-
-        /**
         * @brief set training paramters
         */
         void setParameters(
@@ -626,7 +621,7 @@ namespace bdh {
         void setNodeParam(
             node_t* node,
             data_t* query
-        );
+        ) const;
 
         /**
         * @brief get distance to centroid
@@ -656,9 +651,9 @@ namespace bdh {
         double variance;
         Mat originalData;   //!< store the original feature data
 
-        std::vector<Subspace> subspaceVector;
-                            //!< classes handling parameters of subspace
-        Subspace* subspace; //!< classes handling parameters of subspace
+        std::vector<Subspace> subspaceVector;//!< classes handling parameters of subspace
+        //                    
+        //Subspace* subspace; //!< classes handling parameters of subspace
         Subspace  lestspace;//!< classe handling parameters of subspace not which construct the hash table
 
         HashTable hashTable;    //!< hash table
@@ -677,7 +672,6 @@ namespace bdh {
             , pointSize(0)
             , entrySize(0)
             , hashSize(0)
-            , subspace(nullptr)
             , hashTable()
         {}
 
@@ -688,7 +682,6 @@ namespace bdh {
 
         ~Index()
         {
-            delete[] subspace;
         }
 
         size_t get_nDdataPoints() const
