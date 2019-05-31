@@ -694,9 +694,9 @@ namespace bdh {
             , hashTable()
         {}
 
-        Index(int dim, unsigned num, data_t** data);
+        Index(int dim, unsigned num, void** data);
 
-        void Build(int dim, unsigned num, data_t ** data);
+        void Build(int dim, unsigned num, void** data);
         void Build(InputArray data, enum PCA::Flags order = PCA::DATA_AS_ROW);
 
         ~Index()
@@ -766,7 +766,7 @@ namespace bdh {
         * @return hash value
         */
         size_t hashFunction(
-            data_t* data	//!< [in] a point 
+            data_t * data	//!< [in] a point 
         );
 
     };

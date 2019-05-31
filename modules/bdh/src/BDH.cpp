@@ -418,7 +418,7 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
     hashSize = (size_t(1) << bit);//hash size is 2^bit
     Subspace::dim = dim;
 
-    pointSize = sizeof(data_t)*dim;//byte size of a point's value
+    pointSize = sizeof(featureElement)*dim;//byte size of a point's value
     entrySize = pointSize + sizeof(index_t);//byte size to entry a point into hash table
 
     variance = 0;
@@ -450,7 +450,7 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
         }
 
         BDHtrainer.training_ICCV2013(
-            dim, l_num, l_data,
+            dim, l_num, (featureElement**)l_data,
             base, P, bit, bit_step
         );
 
@@ -461,7 +461,7 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
     {
 
         BDHtrainer.training_ICCV2013(
-            dim, num, data,
+            dim, num, (featureElement**)data,
             base, P, bit, bit_step
         );
 
@@ -573,13 +573,13 @@ void cv::bdh::Index<data_t>::Build(InputArray data, PCA::Flags order)
 }
 
 template <typename data_t>
-void Index<data_t>::Build(int dim, unsigned num, data_t** data)
+void Index<data_t>::Build(int dim, unsigned num, void** data)
 {
     //Principal Component Analysis
     cout << "calculate PCA ." << endl;
     PrincipalComponentAnalysis pca;
 
-    pca.executePCA(dim, num, data);
+    pca.executePCA(dim, num, (featureElement**)data);
 
     // copy PCA direction to base_t for BDH
     const PC_t* pcDir = pca.getPCdir();
@@ -604,11 +604,11 @@ void Index<data_t>::Build(int dim, unsigned num, data_t** data)
     delete[] base;
 
     // entory data points into hash table
-    storePoint(num, data);
+    storePoint(num, (featureElement**)data);
 }
 
 template <typename data_t>
-Index<data_t>::Index(int dim, unsigned num, data_t** data)
+Index<data_t>::Index(int dim, unsigned num, void** data)
     : dim(dim)
     , M(0)
     , P(10)

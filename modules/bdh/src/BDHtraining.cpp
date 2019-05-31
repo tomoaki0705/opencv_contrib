@@ -329,14 +329,18 @@ void BDHtraining<data_t>::calclateCentroid_ICCV2013(
 	int percent;
 	int tmp = 5;
 	int loop = static_cast<int>(bit / bit_step);
+    double previousSquare = 0.0;
+    double valueSquare = 0.0;
 	double restBit = bit - bit_step*loop;
 	for (int i = 0; i < loop; ++i)
 	{
 		updateCentroid(bit_step, subPrjData, k_means);
-		percent = static_cast<int>(square(bit_step*i / bit) * 100);
+        previousSquare = valueSquare;
+        valueSquare = square(bit_step*i / bit) * 100.;
+		percent = static_cast<int>(valueSquare);
 		if (percent >= tmp)
 		{
-			cout << percent << "% done." << endl;
+			cout << percent << "% done. " << previousSquare << ',' << valueSquare << endl;
 			tmp += 5;
 		}
 	}
