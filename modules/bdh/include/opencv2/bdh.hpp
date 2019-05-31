@@ -552,7 +552,11 @@ namespace bdh {
         int subHashSize;	 //!< hash size at subspace = 1<<bit
         double bit;			 //!< information volume
         double variance;	 //!< sum of variance
-        double** base;		 //!< base direction[P][dim]
+        std::vector<std::vector<double> > baseVector;
+                             //!< base direction[P][dim]
+        //double** base;       //!< base direction[P][dim]
+        std::vector<size_t> hashKeyVector;
+                             //!< hash value of bin corespond to centroid[subHashSize]
         size_t* hashKey;	 //!< hash value of bin corespond to centroid[subHashSize]
         double* cellVariance;//!< variance in cell[subHashSize]
         double** centroid;	 //!< centroid[subHashSize][subDim]
@@ -567,7 +571,6 @@ namespace bdh {
             , subHashSize(0)
             , bit(0.0)
             , variance(0.0)
-            , base(nullptr)
             , hashKey(nullptr)
             , cellVariance(nullptr)
             , centroid(nullptr)
@@ -575,15 +578,6 @@ namespace bdh {
 
         ~Subspace()
         {
-            if (base != nullptr)
-            {
-                for (int p = 0; p < subDim; ++p)
-                {
-                    delete[] base[p];
-                }
-                delete[] base;
-            }
-
             delete[] hashKey;
 
             delete[] cellVariance;
@@ -615,8 +609,8 @@ namespace bdh {
         */
         template<typename data_t>
         double innerProduct(
-            double* base,
-            const data_t* data
+            const std::vector<double>& base, 
+            const data_t * data
         ) const;
 
         /**
@@ -624,7 +618,7 @@ namespace bdh {
         */
         template<typename data_t>
         void getPCAdata(
-            const data_t* data,
+            data_t* data,
             double* PCAdata) const;
 
         /**
@@ -672,6 +666,8 @@ namespace bdh {
         double variance;
         Mat originalData;   //!< store the original feature data
 
+        std::vector<Subspace> subspaceVector;
+                            //!< classes handling parameters of subspace
         Subspace* subspace;	//!< classes handling parameters of subspace
         Subspace  lestspace;//!< classe handling parameters of subspace not which construct the hash table
 

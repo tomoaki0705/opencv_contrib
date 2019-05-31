@@ -2,6 +2,7 @@
 #include <Subspace.h>
 #include <NearestNeighbor.h>
 #include <k_means.h>
+#include <algorithm>
 
 namespace cv { namespace bdh {
 int Subspace::dim;
@@ -23,24 +24,19 @@ void Subspace::setParameters(const baseset_t& baseSet)
 		memcpy(centroid[h], baseSet.centroid[h], sizeof(double)*subDim);
 	}
 
-	base = new double*[subDim];
+	//base = new double*[subDim];
 	for (int d = 0; d < subDim; ++d){
-
-		base[d] = new double[dim];
-		memcpy(base[d], baseSet.base[d].direction, sizeof(double)*dim);
+        //base[d] = new double[dim];
+        std::vector<double> stub;
+		//memcpy(base[d], baseSet.base[d].direction, sizeof(double)*dim);
+        for (auto i = 0; i < dim; i++)
+        {
+            stub.push_back(baseSet.base[d].direction[i]);
+        }
 	}
 }
 
 void Subspace::clear(){
-	if (base != nullptr){
-		for (int sd = 0; sd < subDim; ++sd){
-			if (base[sd] != nullptr){
-				delete[] base[sd];
-			}
-		}
-		delete[] base;
-		base = nullptr;
-	}
 
 	if (hashKey != nullptr){
 		delete[] hashKey;

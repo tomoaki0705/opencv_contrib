@@ -407,13 +407,13 @@ void parameterTuning(const Mat& originalData, const PCA& featureSpace, enum tuni
         break;
     case cv::bdh::TUNING_ADVANCED_2013:
     default:
-        parameterTuning_ICCV2013(originalData.cols, originalData.rows, data, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace, 0.1, 1.0);
+        parameterTuning_ICCV2013(originalData.cols, originalData.rows, data, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, subspaceVector, lestspace, 0.1, 1.0);
         break;
     }
 }
 
 template <typename data_t>
-void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t * const base, int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, double &variance, HashTable &hashTable, double &delta, Subspace* &subspace, Subspace& lestspace, double bit_step = 1.0, double sampling_rate = 1.0)
+void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t * const base, int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, double &variance, HashTable &hashTable, double &delta, Subspace* &subspace, std::vector<Subspace> &subspaceVector, Subspace& lestspace, double bit_step = 1.0, double sampling_rate = 1.0)
 {
     hashSize = (size_t(1) << bit);//hash size is 2^bit
     Subspace::dim = dim;
@@ -476,6 +476,8 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
 
     for (int m = 0; m < M; ++m)
     {
+        Subspace stub;
+        stub.setParameters(baseSet[m]);
         subspace[m].setParameters(baseSet[m]);
 
         subspace[m].hashKey = new size_t[subspace[m].subHashSize];
@@ -483,10 +485,12 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
         for (int i = 0; i < subspace[m].subHashSize; ++i)
         {
             subspace[m].hashKey[i] = rank*i;
-
+            stub.hashKeyVector.push_back(rank*i);
         }
 
-        rank *= subspace[m].subHashSize;
+        //rank *= subspace[m].subHashSize;
+        rank *= stub.subHashSize;
+        subspaceVector.push_back(stub);
     }
 
     lestspace.subDim = lestSet.subDim;
@@ -494,14 +498,20 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
     lestspace.centroid = new double*[1];
     lestspace.centroid[0] = new double[lestSet.subDim];
 
-    lestspace.base = new double*[lestspace.subDim];
+    //lestspace.base = new double*[lestspace.subDim];
     for (int d = 0; d < lestspace.subDim; ++d)
     {
+        std::vector<double> stub;
         // pca.mean
         lestspace.centroid[0][d] = lestSet.base[d].mean;
         // pca.eigenvectors
-        lestspace.base[d] = new double[dim];
-        memcpy(lestspace.base[d], lestSet.base[d].direction, sizeof(double)*dim);
+        //lestspace.base[d] = new double[dim];
+        //memcpy(lestspace.base[d], lestSet.base[d].direction, sizeof(double)*dim);
+        for (auto i = 0; i < dim; i++)
+        {
+            stub.push_back(lestSet.base[d].direction[i]);
+        }
+        lestspace.baseVector.push_back(stub);
     }
 
 }
@@ -538,7 +548,7 @@ void cv::bdh::Index<data_t>::Build(InputArray data, PCA::Flags order)
         memcpy(convertData[n], (featureElement*)originalData.data + n * originalData.step, sizeof(featureElement) * dim);
     }
 
-    parameterTuning_ICCV2013(dim, length, convertData, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace, 0.1, 1.0);
+    parameterTuning_ICCV2013(dim, length, convertData, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, subspaceVector, lestspace, 0.1, 1.0);
 
     //delete base
     if (base != NULL)
@@ -600,7 +610,7 @@ void Index<data_t>::Build(int dim, unsigned num, void** data)
 
     cout << "training Start ." << endl;
     // train parameters
-    parameterTuning_ICCV2013(dim, num, data, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace, 0.1, 1.0);
+    parameterTuning_ICCV2013(dim, num, data, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, subspaceVector, lestspace, 0.1, 1.0);
 
     //delete base
     for (int d = 0; d < dim; ++d)
@@ -666,14 +676,19 @@ bool Index<data_t>::loadParameters(
             subHashSizeMax = subspace[m].subHashSize;
         }
 
-        subspace[m].base = new double*[P];
+        //subspace[m].base = new double*[P];
         for (int sd = 0; sd < P; ++sd)
         {
-            subspace[m].base[sd] = new double[dim];
+            std::vector<double> stub;
+            //subspace[m].base[sd] = new double[dim];
             for (int d = 0; d < dim; ++d)
             {
-                ifs >> subspace[m].base[sd][d];
+                double v;
+                //ifs >> subspace[m].base[sd][d];
+                ifs >> v;
+                stub.push_back(v);
             }
+            subspace[m].baseVector.push_back(stub);
         }
 
         subspace[m].cellVariance = new double[subspace[m].subHashSize];
@@ -703,13 +718,18 @@ bool Index<data_t>::loadParameters(
     lestspace.cellVariance = new double[1];
     lestspace.cellVariance[0] = lestspace.variance;
 
-    lestspace.base = new double*[lestspace.subDim];
+    //lestspace.base = new double*[lestspace.subDim];
     for (int sd = 0; sd < lestspace.subDim; ++sd)
     {
-        lestspace.base[sd] = new double[dim];
+        //lestspace.base[sd] = new double[dim];
+        std::vector<double> stub;
         for (int d = 0; d < dim; ++d) {
-            ifs >> lestspace.base[sd][d];
+            double v;
+            //ifs >> lestspace.base[sd][d];
+            ifs >> v;
+            stub.push_back(v);
         }
+        lestspace.baseVector.push_back(stub);
     }
 
     ifs.close();
@@ -747,7 +767,7 @@ bool Index<data_t>::saveParameters(const String& path) const
         {
             for (int d = 0; d < dim; ++d)
             {
-                ofs << subspace[m].base[sd][d] << "\t";
+                ofs << subspace[m].baseVector[sd][d] << "\t";
             }
             ofs << endl;
         }
@@ -778,7 +798,7 @@ bool Index<data_t>::saveParameters(const String& path) const
     {
         for (int d = 0; d < dim; ++d)
         {
-            ofs << lestspace.base[sd][d] << "\t";
+            ofs << lestspace.baseVector[sd][d] << "\t";
         }
         ofs << endl;
     }
@@ -826,7 +846,7 @@ void Index<data_t>::storePoint(/*index_t num, data_t** data*/)
 }
 
 template<typename data_t>
-double Subspace::innerProduct(double* base, const data_t* data) const
+double Subspace::innerProduct(const std::vector<double>& base, const data_t* data) const
 {
 	double val = 0.0;
 	for (int d = 0; d < dim; ++d){
@@ -836,9 +856,9 @@ double Subspace::innerProduct(double* base, const data_t* data) const
 }
 
 template<typename data_t>
-void Subspace::getPCAdata(const data_t* data, double* PCAdata) const
+void Subspace::getPCAdata(data_t* data, double* PCAdata) const
 {
-	double** base_p = base;
+	std::vector<std::vector<double> >::const_iterator base_p = baseVector.begin();
 	double* PCAdata_end = PCAdata + subDim;
 	for (; PCAdata != PCAdata_end; ++PCAdata)
 	{
