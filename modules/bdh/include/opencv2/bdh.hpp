@@ -553,7 +553,6 @@ namespace bdh {
         double bit;          //!< information volume
         double variance;     //!< sum of variance
         std::vector<std::vector<double> > baseVector;     //!< base direction[P][dim]
-        std::vector<size_t> hashKeyVector;                //!< hash value of bin corespond to centroid[subHashSize]
         std::vector<size_t> hashKey;                      //!< hash value of bin corespond to centroid[subHashSize]
         std::vector<double> cellVariance;                 //!< variance in cell[subHashSize]
         std::vector<std::vector<double> > centroidVector; //!< centroid[subHashSize][subDim]

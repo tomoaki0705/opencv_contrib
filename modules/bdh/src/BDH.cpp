@@ -480,7 +480,7 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
 
         for (int i = 0; i < stub.subHashSize; ++i)
         {
-            stub.hashKeyVector.push_back(rank*i);
+            stub.hashKey.push_back(rank*i);
         }
 
         rank *= stub.subHashSize;
