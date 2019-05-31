@@ -38,11 +38,6 @@ void Subspace::setParameters(const baseset_t& baseSet)
 
 void Subspace::clear(){
 
-	if (hashKey != nullptr){
-		delete[] hashKey;
-		hashKey = nullptr;
-	}
-
 	if (cellVariance != nullptr){
 		delete[] cellVariance;
 		cellVariance = nullptr;

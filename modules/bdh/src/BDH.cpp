@@ -480,34 +480,24 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
         stub.setParameters(baseSet[m]);
         subspace[m].setParameters(baseSet[m]);
 
-        subspace[m].hashKey = new size_t[subspace[m].subHashSize];
-
         for (int i = 0; i < subspace[m].subHashSize; ++i)
         {
-            subspace[m].hashKey[i] = rank*i;
+            subspace[m].hashKey.push_back(rank*i);
             stub.hashKeyVector.push_back(rank*i);
         }
 
-        //rank *= subspace[m].subHashSize;
         rank *= stub.subHashSize;
         subspaceVector.push_back(stub);
     }
 
     lestspace.subDim = lestSet.subDim;
-    lestspace.variance = lestSet.variance;  // pca.eigenvalues
-    //lestspace.centroid = new double*[1];
-    //lestspace.centroid[0] = new double[lestSet.subDim];
+    lestspace.variance = lestSet.variance;
 
-    //lestspace.base = new double*[lestspace.subDim];
     std::vector<double> stubCentroid;
     for (int d = 0; d < lestspace.subDim; ++d)
     {
-        std::vector<double> stub;
-        // pca.mean
         stubCentroid.push_back(lestSet.base[d].mean);
-        // pca.eigenvectors
-        //lestspace.base[d] = new double[dim];
-        //memcpy(lestspace.base[d], lestSet.base[d].direction, sizeof(double)*dim);
+        std::vector<double> stub;
         for (auto i = 0; i < dim; i++)
         {
             stub.push_back(lestSet.base[d].direction[i]);
@@ -694,11 +684,12 @@ bool Index<data_t>::loadParameters(
         }
 
         subspace[m].cellVariance = new double[subspace[m].subHashSize];
-        subspace[m].hashKey = new size_t[subspace[m].subHashSize];
         for (int i = 0; i < subspace[m].subHashSize; ++i)
         {
             std::vector<double> stub;
-            ifs >> subspace[m].cellVariance[i] >> subspace[m].hashKey[i];
+            size_t stubHash;
+            ifs >> subspace[m].cellVariance[i] >> stubHash;
+            subspace[m].hashKey.push_back(stubHash);
 
             for (int d = 0; d < P; ++d)
             {
