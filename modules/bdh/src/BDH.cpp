@@ -861,10 +861,9 @@ template<typename data_t>
 void Subspace::getPCAdata(data_t * data, std::vector<double>& PCAdata) const
 {
     std::vector<std::vector<double> >::const_iterator base_p = baseVector.begin();
-    std::vector<double>::const_iterator PCAdata_end = PCAdata.end();
-    for (; PCAdata != PCAdata_end; ++PCAdata)
+    for ( auto&& it : PCAdata )
     {
-        *PCAdata = innerProduct(*base_p++, data);
+        *it = innerProduct(*base_p++, data);
     }
 }
 
