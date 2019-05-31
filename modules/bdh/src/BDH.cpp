@@ -510,13 +510,14 @@ template<typename data_t>
 void cv::bdh::Index<data_t>::Build(InputArray data, PCA::Flags order)
 {
     cv::Mat _data = data.getMat();
-    cv::PCA pca(_data, Mat(), order, order == PCA::DATA_AS_ROW ? _data.rows : _data.cols);
+    originalData = _data.clone();
+    cv::PCA pca(originalData, Mat(), order, order == PCA::DATA_AS_ROW ? originalData.rows : originalData.cols);
     pca.mean;
     pca.eigenvectors;
     pca.eigenvalues;
     int i = 0;
-    int length = _data.rows;
-    dim = _data.cols;
+    int length = originalData.rows;
+    dim = originalData.cols;
 
     // copy PCA direction to base_t for BDH
     base_t* base = new base_t[dim];
@@ -534,7 +535,7 @@ void cv::bdh::Index<data_t>::Build(InputArray data, PCA::Flags order)
     for (size_t n = 0; n < length; n++)
     {
         convertData[n] = new featureElement[dim];
-        memcpy(convertData[n], (featureElement*)_data.data + n * _data.step, sizeof(featureElement) * dim);
+        memcpy(convertData[n], (featureElement*)originalData.data + n * originalData.step, sizeof(featureElement) * dim);
     }
 
     parameterTuning_ICCV2013(dim, length, convertData, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace, 0.1, 1.0);
@@ -555,7 +556,7 @@ void cv::bdh::Index<data_t>::Build(InputArray data, PCA::Flags order)
     }
 
     // entory data points into hash table
-    storePoint(length, convertData);
+    storePoint();
 
     if (convertData != NULL)
     {
@@ -580,6 +581,11 @@ void Index<data_t>::Build(int dim, unsigned num, void** data)
     PrincipalComponentAnalysis pca;
 
     pca.executePCA(dim, num, (featureElement**)data);
+    originalData = Mat(num, dim, CV_8UC1);
+    for (size_t y = 0; y < num; y++)
+    {
+        memcpy(originalData.data + y * originalData.step, (featureElement*)(data[y]), sizeof(featureElement) * dim);
+    }
 
     // copy PCA direction to base_t for BDH
     const PC_t* pcDir = pca.getPCdir();
@@ -604,7 +610,7 @@ void Index<data_t>::Build(int dim, unsigned num, void** data)
     delete[] base;
 
     // entory data points into hash table
-    storePoint(num, (featureElement**)data);
+    storePoint();
 }
 
 template <typename data_t>
@@ -783,17 +789,17 @@ bool Index<data_t>::saveParameters(const String& path) const
 }
 
 template <typename data_t>
-void Index<data_t>::storePoint(index_t num, data_t** data)
+void Index<data_t>::storePoint(/*index_t num, data_t** data*/)
 {
 	//alloc workspace
 	collision_t* collision = new collision_t[hashSize];
 	memset(collision, 0, sizeof(collision_t)*hashSize);
 
-	size_t* hashKey = new size_t[num];
-	for (index_t n = 0; n < num; ++n)
+	size_t* hashKey = new size_t[originalData.rows];
+	for (index_t n = 0; n < originalData.rows; ++n)
 	{
 		//get hash value
-		hashKey[n] = hashFunction(data[n]);
+		hashKey[n] = hashFunction(n);
 		//increment collision
 		++collision[hashKey[n]];
 	}
@@ -807,9 +813,9 @@ void Index<data_t>::storePoint(index_t num, data_t** data)
 		exit(__LINE__);
 	}
 
-	for (index_t n = 0; n < num; ++n)
+	for (index_t n = 0; n < originalData.rows; ++n)
 	{
-		memcpy(entry, data[n], pointSize);
+		memcpy(entry, originalData.row(n).data, pointSize);
 		*reinterpret_cast<index_t*>(entry + pointSize) = n;
 
 		hashTable.storeEntryWithoutAlloc(hashKey[n], entry);
@@ -857,13 +863,13 @@ size_t Subspace::getSubHashValue(
 }
 
 template <typename data_t>
-size_t Index<data_t>::hashFunction(data_t* data)
+size_t Index<data_t>::hashFunction(int index)
 {
 
 	size_t hashKey = 0;
 	for (int m = 0; m < M; ++m)
 	{
-		hashKey += subspace[m].getSubHashValue(data);
+		hashKey += subspace[m].getSubHashValue(originalData.row(index).data);
 	}
 	return hashKey;
 }

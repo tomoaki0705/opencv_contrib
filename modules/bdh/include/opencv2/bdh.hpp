@@ -670,6 +670,7 @@ namespace bdh {
         size_t entrySize;	//!< size of entry = sum of size of index and data point
         size_t hashSize;	//!< hash size = 2^bit
         double variance;
+        Mat originalData;   //!< store the original feature data
 
         Subspace* subspace;	//!< classes handling parameters of subspace
         Subspace  lestspace;//!< classe handling parameters of subspace not which construct the hash table
@@ -756,17 +757,14 @@ namespace bdh {
         /**
         * @brief store point set into hash table
         */
-        void storePoint(
-            index_t num,	//!< [in] number of data points. 
-            data_t**data	//!< [in] data point set. 
-        );
+        void storePoint();
 
         /**
         * @brief hash function
         * @return hash value
         */
         size_t hashFunction(
-            data_t * data	//!< [in] a point 
+            int index	//!< [in] index-th feature
         );
 
     };
