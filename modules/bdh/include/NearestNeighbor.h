@@ -10,6 +10,7 @@
 
 #include "define.h"
 #include "point.h"
+#include <vector>
 
 /**
 * @brief distance calculation
@@ -48,18 +49,34 @@ void NearestNeighbor(
 
 template<typename data_t, typename query_t>
 double Distance(
-	int dim, 
-	data_t* sample, 
-	query_t* query
-	)
+    int dim,
+    data_t* sample,
+    query_t* query
+)
 {
-	double dist = 0.0;
+    double dist = 0.0;
 
-	for (int d = 0; d < dim; ++d){
-		dist += NORM(query[d] - sample[d]);
-	}
+    for (int d = 0; d < dim; ++d) {
+        dist += NORM(query[d] - sample[d]);
+    }
 
-	return dist;
+    return dist;
+}
+
+template<typename data_t, typename query_t>
+double Distance(
+    int dim,
+    const std::vector<data_t> &sample,
+    query_t* query
+)
+{
+    double dist = 0.0;
+
+    for (int d = 0; d < dim; ++d) {
+        dist += NORM(query[d] - sample[d]);
+    }
+
+    return dist;
 }
 
 template<typename data_t, typename query_t>
@@ -83,6 +100,29 @@ int NearestNeighbor(
 		}
 	}
 	return NNidx;
+}
+
+template<typename data_t, typename query_t>
+int NearestNeighbor(
+    int dim,
+    int num,
+    const std::vector<std::vector<data_t> > &sample,
+    query_t* query
+)
+{
+
+    int NNidx = 0;
+    double NNdis = Distance(dim, sample[0], query);
+    double distance;
+    for (int n = 1; n < num; n++) {
+
+        distance = Distance(dim, sample[n], query);
+        if (distance < NNdis) {
+            NNdis = distance;
+            NNidx = n;
+        }
+    }
+    return NNidx;
 }
 
 template<typename data_t, typename query_t>

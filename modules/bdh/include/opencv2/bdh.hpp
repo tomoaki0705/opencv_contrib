@@ -559,7 +559,8 @@ namespace bdh {
                              //!< hash value of bin corespond to centroid[subHashSize]
         size_t* hashKey;	 //!< hash value of bin corespond to centroid[subHashSize]
         double* cellVariance;//!< variance in cell[subHashSize]
-        double** centroid;	 //!< centroid[subHashSize][subDim]
+        std::vector<std::vector<double> > centroidVector;
+        //double** centroid;	 //!< centroid[subHashSize][subDim]
 
     public:
 
@@ -573,7 +574,6 @@ namespace bdh {
             , variance(0.0)
             , hashKey(nullptr)
             , cellVariance(nullptr)
-            , centroid(nullptr)
         {}
 
         ~Subspace()
@@ -581,15 +581,6 @@ namespace bdh {
             delete[] hashKey;
 
             delete[] cellVariance;
-
-            if (centroid != nullptr)
-            {
-                for (int b = 0; b < subHashSize; ++b)
-                {
-                    delete[] centroid[b];
-                }
-                delete[] centroid;
-            }
         }
 
         /**

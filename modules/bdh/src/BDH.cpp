@@ -495,15 +495,16 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
 
     lestspace.subDim = lestSet.subDim;
     lestspace.variance = lestSet.variance;  // pca.eigenvalues
-    lestspace.centroid = new double*[1];
-    lestspace.centroid[0] = new double[lestSet.subDim];
+    //lestspace.centroid = new double*[1];
+    //lestspace.centroid[0] = new double[lestSet.subDim];
 
     //lestspace.base = new double*[lestspace.subDim];
+    std::vector<double> stubCentroid;
     for (int d = 0; d < lestspace.subDim; ++d)
     {
         std::vector<double> stub;
         // pca.mean
-        lestspace.centroid[0][d] = lestSet.base[d].mean;
+        stubCentroid.push_back(lestSet.base[d].mean);
         // pca.eigenvectors
         //lestspace.base[d] = new double[dim];
         //memcpy(lestspace.base[d], lestSet.base[d].direction, sizeof(double)*dim);
@@ -513,6 +514,7 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
         }
         lestspace.baseVector.push_back(stub);
     }
+    lestspace.centroidVector.push_back(stubCentroid);
 
 }
 
@@ -693,28 +695,32 @@ bool Index<data_t>::loadParameters(
 
         subspace[m].cellVariance = new double[subspace[m].subHashSize];
         subspace[m].hashKey = new size_t[subspace[m].subHashSize];
-        subspace[m].centroid = new double*[subspace[m].subHashSize];
         for (int i = 0; i < subspace[m].subHashSize; ++i)
         {
+            std::vector<double> stub;
             ifs >> subspace[m].cellVariance[i] >> subspace[m].hashKey[i];
 
-            subspace[m].centroid[i] = new double[P];
             for (int d = 0; d < P; ++d)
             {
-                ifs >> subspace[m].centroid[i][d];
+                double v;
+                ifs >> v;
+                stub.push_back(v);
             }
+            subspace[m].centroidVector.push_back(stub);
         }
     }
 
     ifs >> lestspace.subDim
         >> lestspace.variance;
 
-    lestspace.centroid = new double*[1];
-    lestspace.centroid[0] = new double[lestspace.subDim];
+    std::vector<double> stub;
     for (int sd = 0; sd < lestspace.subDim; ++sd)
     {
-        ifs >> lestspace.centroid[0][sd];
+        double v;
+        ifs >> v;
+        stub.push_back(v);
     }
+    lestspace.centroidVector.push_back(stub);
     lestspace.cellVariance = new double[1];
     lestspace.cellVariance[0] = lestspace.variance;
 
@@ -779,7 +785,7 @@ bool Index<data_t>::saveParameters(const String& path) const
 
             for (int d = 0; d < subspace[m].subDim; ++d)
             {
-                ofs << subspace[m].centroid[i][d] << "\t";
+                ofs << subspace[m].centroidVector[i][d] << "\t";
             }
 
             ofs << endl;
@@ -790,7 +796,7 @@ bool Index<data_t>::saveParameters(const String& path) const
         << lestspace.variance << endl;
     for (int sd = 0; sd < lestspace.subDim; ++sd)
     {
-        ofs << lestspace.centroid[0][sd] << "\t";
+        ofs << lestspace.centroidVector[0][sd] << "\t";
     }
     ofs << endl;
 
@@ -876,7 +882,7 @@ size_t Subspace::getSubHashValue(
 	double* PCAdata = new double[subDim];
 
 	getPCAdata(data, PCAdata);
-	int idx = NearestNeighbor(subDim, subHashSize, centroid, PCAdata);
+	int idx = NearestNeighbor(subDim, subHashSize, centroidVector, PCAdata);
 	delete[] PCAdata;
 
 	return hashKey[idx];
