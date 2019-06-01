@@ -19,7 +19,7 @@ void Subspace::setParameters(const baseset_t& baseSet)
         cellVariance.push_back(baseSet.cellVariance[i]);
     }
 
-    for (int h = 0; h < subHashSize; ++h)
+    for (int h = 0; h < subHashSize; h++)
     {
         std::vector<double> stub;
         for (auto i = 0; i < subDim; i++)
@@ -29,12 +29,14 @@ void Subspace::setParameters(const baseset_t& baseSet)
         centroidVector.push_back(stub);
     }
 
-    for (int d = 0; d < subDim; ++d){
+    for (int d = 0; d < subDim; d++)
+    {
         std::vector<double> stub;
         for (auto i = 0; i < dim; i++)
         {
             stub.push_back(baseSet.base[d].direction[i]);
         }
+        baseVector.push_back(stub);
     }
 }
 

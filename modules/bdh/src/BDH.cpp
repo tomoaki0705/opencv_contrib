@@ -37,8 +37,8 @@ void Index<data_t>::setLayerParam(
     layer_t* layer_p_end = layer + M;
     for (int m = 0; layer_p != layer_p_end; ++m, ++layer_p)
     {
-        layer_p->k = subspaceVector[m].subHashSize;
-        subspaceVector[m].setNodeParam(layer_p->node, query);
+        layer_p->k = subspace[m].subHashSize;
+        subspace[m].setNodeParam(layer_p->node, query);
         layer_p->calc_gap();
     }
     std::sort(layer, layer + M);
@@ -407,13 +407,13 @@ void parameterTuning(const Mat& originalData, const PCA& featureSpace, enum tuni
         break;
     case cv::bdh::TUNING_ADVANCED_2013:
     default:
-        parameterTuning_ICCV2013(originalData.cols, originalData.rows, data, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, subspaceVector, lestspace, 0.1, 1.0);
+        parameterTuning_ICCV2013(originalData.cols, originalData.rows, data, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, subspace, lestspace, 0.1, 1.0);
         break;
     }
 }
 
 template <typename data_t>
-void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t * const base, int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, double &variance, HashTable &hashTable, double &delta, std::vector<Subspace> &subspaceVector, Subspace& lestspace, double bit_step = 1.0, double sampling_rate = 1.0)
+void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t * const base, int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, double &variance, HashTable &hashTable, double &delta, std::vector<Subspace> &subspace, Subspace& lestspace, double bit_step = 1.0, double sampling_rate = 1.0)
 {
     hashSize = (size_t(1) << bit);//hash size is 2^bit
     Subspace::dim = dim;
@@ -484,7 +484,7 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
         }
 
         rank *= stub.subHashSize;
-        subspaceVector.push_back(stub);
+        subspace.push_back(stub);
     }
 
     lestspace.subDim = lestSet.subDim;
@@ -537,7 +537,7 @@ void cv::bdh::Index<data_t>::Build(InputArray data, PCA::Flags order)
         memcpy(convertData[n], (featureElement*)originalData.data + n * originalData.step, sizeof(featureElement) * dim);
     }
 
-    parameterTuning_ICCV2013(dim, length, convertData, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspaceVector, lestspace, 0.1, 1.0);
+    parameterTuning_ICCV2013(dim, length, convertData, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace, 0.1, 1.0);
 
     //delete base
     if (base != NULL)
@@ -599,7 +599,7 @@ void Index<data_t>::Build(int dim, unsigned num, void** data)
 
     cout << "training Start ." << endl;
     // train parameters
-    parameterTuning_ICCV2013(dim, num, data, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspaceVector, lestspace, 0.1, 1.0);
+    parameterTuning_ICCV2013(dim, num, data, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace, 0.1, 1.0);
 
     //delete base
     for (int d = 0; d < dim; ++d)
@@ -695,7 +695,7 @@ bool Index<data_t>::loadParameters(
             }
             stubSpace.centroidVector.push_back(stub);
         }
-        subspaceVector.push_back(stubSpace);
+        subspace.push_back(stubSpace);
     }
 
     ifs >> lestspace.subDim
@@ -750,26 +750,26 @@ bool Index<data_t>::saveParameters(const String& path) const
 
     for (int m = 0; m < M; ++m)
     {
-        ofs << subspaceVector[m].subHashSize << "\t"
-            << subspaceVector[m].variance << endl;
+        ofs << subspace[m].subHashSize << "\t"
+            << subspace[m].variance << endl;
 
         for (int sd = 0; sd < P; ++sd)
         {
             for (int d = 0; d < dim; ++d)
             {
-                ofs << subspaceVector[m].baseVector[sd][d] << "\t";
+                ofs << subspace[m].baseVector[sd][d] << "\t";
             }
             ofs << endl;
         }
 
-        for (int i = 0; i < subspaceVector[m].subHashSize; ++i)
+        for (int i = 0; i < subspace[m].subHashSize; ++i)
         {
 
-            ofs << subspaceVector[m].cellVariance[i] << "\t" << subspaceVector[m].hashKey[i] << endl;
+            ofs << subspace[m].cellVariance[i] << "\t" << subspace[m].hashKey[i] << endl;
 
-            for (int d = 0; d < subspaceVector[m].subDim; ++d)
+            for (int d = 0; d < subspace[m].subDim; ++d)
             {
-                ofs << subspaceVector[m].centroidVector[i][d] << "\t";
+                ofs << subspace[m].centroidVector[i][d] << "\t";
             }
 
             ofs << endl;
@@ -890,7 +890,7 @@ size_t Index<data_t>::hashFunction(int index)
     size_t hashKey = 0;
     for (int m = 0; m < M; ++m)
     {
-        hashKey += subspaceVector[m].getSubHashValue(originalData.row(index).data);
+        hashKey += subspace[m].getSubHashValue(originalData.row(index).data);
     }
     return hashKey;
 }
@@ -908,8 +908,8 @@ int Index<data_t>::getBucketList(
     layer_t* layer = new layer_t[M];
     for (int m = 0; m < M; ++m)
     {
-        layer[m].node = new node_t[subspaceVector[m].subHashSize + 1];
-        layer[m].node[subspaceVector[m].subHashSize].distance = DBL_MAX;
+        layer[m].node = new node_t[subspace[m].subHashSize + 1];
+        layer[m].node[subspace[m].subHashSize].distance = DBL_MAX;
     }
     setLayerParam(layer, query);
 

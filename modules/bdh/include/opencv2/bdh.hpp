@@ -650,9 +650,7 @@ namespace bdh {
         double variance;
         Mat originalData;   //!< store the original feature data
 
-        std::vector<Subspace> subspaceVector;//!< classes handling parameters of subspace
-        //                    
-        //Subspace* subspace; //!< classes handling parameters of subspace
+        std::vector<Subspace> subspace;//!< classes handling parameters of subspace
         Subspace  lestspace;//!< classe handling parameters of subspace not which construct the hash table
 
         HashTable hashTable;    //!< hash table
