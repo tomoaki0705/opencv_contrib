@@ -836,12 +836,12 @@ void Index<data_t>::storePoint(/*index_t num, data_t** data*/)
 }
 
 template<typename data_t>
-double Subspace::innerProduct(const std::vector<double>& base, const data_t* data) const
+double innerProduct(const std::vector<double>& base, const data_t* data)
 {
     double val = 0.0;
-    for (int d = 0; d < dim; ++d)
+    for (size_t i = 0; i < base.size(); i++)
     {
-        val += base[d] * data[d];
+        val += base[i] * data[i];
     }
     return val;
 }

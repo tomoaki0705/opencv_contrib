@@ -581,15 +581,6 @@ namespace bdh {
         );
 
         /**
-        * @brief inner product
-        */
-        template<typename data_t>
-        double innerProduct(
-            const std::vector<double>& base, 
-            const data_t * data
-        ) const;
-
-        /**
         * @brief project data into Principal Component space
         */
         template<typename data_t>
