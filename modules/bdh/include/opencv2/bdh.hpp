@@ -691,7 +691,7 @@ namespace bdh {
 
         ///////////// Search Function ////////////////////////
 
-        void setLayerParam(layer_t * layer, data_t * query) const;
+        void setLayerParam(layer_t * layer, const data_t * query) const;
 
         int NearBucket_R(const double Radius, layer_t * const layer, const status_t & status, std::vector<hashKey_t>& bucketList) const;
 
@@ -699,16 +699,16 @@ namespace bdh {
 
         int NearBucket_C_list(const double Rbound, layer_t * const layer, std::list<status_t>& statusQue, std::list<status_t>::iterator * itr, std::vector<hashKey_t>& bucketList) const;
 
-        int searchInBucket(data_t * query, size_t hashKey, std::priority_queue<point_t>& NNpointQue) const;
+        int searchInBucket(const data_t * query, size_t hashKey, std::priority_queue<point_t>& NNpointQue) const;
 
-        void linearSearchInNNcandidates(data_t * query, point_t* point, int K, double epsilon, std::vector<hashKey_t>& bucketList) const;
+        void linearSearchInNNcandidates(const data_t * query, point_t* point, int K, double epsilon, std::vector<hashKey_t>& bucketList) const;
 
         /**
         * @brief search in Bucket Distance R from query
         * @return number of points in search area
         */
         int NearestNeighbor(
-            data_t* query,
+            const data_t* query,
             point_t* point,
             double searchParam,
             search_mode searchMode = NumPoints,
@@ -717,7 +717,7 @@ namespace bdh {
         )const;
 
         int getBucketList(
-            data_t* query,
+            const data_t* query,
             double searchParam,
             search_mode searchMode,
             std::vector<hashKey_t>& bucketList

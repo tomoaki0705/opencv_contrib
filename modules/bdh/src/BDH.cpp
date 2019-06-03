@@ -30,7 +30,7 @@ void cv::bdh::Subspace::setNodeParam(node_t * node, data_t * query) const
 template <typename data_t>
 void Index<data_t>::setLayerParam(
     layer_t* layer,
-    data_t* query
+    const data_t* query
 ) const {
 
     layer_t* layer_p = layer;
@@ -245,7 +245,7 @@ int Index<data_t>::NearBucket_C_list(
 
 template <typename data_t>
 int Index<data_t>::searchInBucket(
-    data_t* query,
+    const data_t* query,
     size_t hashKey,
     std::priority_queue<point_t>& NNpointQue
 ) const {
@@ -261,8 +261,8 @@ int Index<data_t>::searchInBucket(
 
     double dist;
     data_t* data;
-    data_t* query_p;
-    data_t* query_end = query + dim;
+    const data_t* query_p;
+    const data_t* query_end = query + dim;
     while (addr != addr_end)
     {
         /*Distance Calculation*/
@@ -295,7 +295,7 @@ int Index<data_t>::searchInBucket(
 ///////////// Search Function ////////////////////////
 template <typename data_t>
 void Index<data_t>::linearSearchInNNcandidates(
-    data_t* query,
+    const data_t* query,
     point_t* point,
     int K,
     double epsilon,
@@ -330,7 +330,7 @@ void Index<data_t>::linearSearchInNNcandidates(
 
 template <typename data_t>
 int Index<data_t>::NearestNeighbor(
-    data_t* query,
+    const data_t* query,
     point_t* point,
     double searchParam,
     search_mode searchMode,
@@ -919,7 +919,7 @@ size_t Index<data_t>::hashFunction(int index)
 
 template <typename data_t>
 int Index<data_t>::getBucketList(
-    data_t* query,
+    const data_t* query,
     double searchParam,
     search_mode searchMode,
     std::vector<hashKey_t>& bucketList
