@@ -10,10 +10,10 @@ const double deltaRate = 50;
 ///************** Indexing *******************/
 namespace cv {
 namespace bdh {
-template<typename data_t>
-void cv::bdh::Subspace::setNodeParam(node_t * node, data_t * query) const
+void cv::bdh::Subspace::setNodeParam(node_t * node, InputArray _query) const
 {
-
+    Mat query = _query.getMat().reshape(1, subDim);
+    CV_Assert(subDim == baseVector.rows);
     double* PCAquery = new double[subDim];
     getPCAdata(query, PCAquery);
 
@@ -27,18 +27,16 @@ void cv::bdh::Subspace::setNodeParam(node_t * node, data_t * query) const
     delete[] PCAquery;
 }
 
-template <typename data_t>
-void Index<data_t>::setLayerParam(
-    layer_t* layer,
-    const data_t* query
-) const {
+template<typename data_t>
+void cv::bdh::Index<data_t>::setLayerParam(layer_t * layer, InputArray _query) const
+{
 
     layer_t* layer_p = layer;
     layer_t* layer_p_end = layer + M;
     for (int m = 0; layer_p != layer_p_end; ++m, ++layer_p)
     {
         layer_p->k = subspace[m].subHashSize;
-        subspace[m].setNodeParam(layer_p->node, query);
+        subspace[m].setNodeParam(layer_p->node, _query);
         layer_p->calc_gap();
     }
     std::sort(layer, layer + M);
@@ -242,13 +240,24 @@ int Index<data_t>::NearBucket_C_list(
     return count;
 }
 
+template <typename data_t>
+double computeNorm(Mat& query, const data_t *data, double cutoffDistance)
+{
+    double distance = 0.0;
+    for (size_t i = 0; i < query.rows && distance < cutoffDistance; i++)
+    {
+        distance += NORM(query.data[i] - (*data++));
+    }
+    return distance;
+}
 
 template <typename data_t>
 int Index<data_t>::searchInBucket(
-    const data_t* query,
+    InputArray _query,
     size_t hashKey,
     std::priority_queue<point_t>& NNpointQue
 ) const {
+    CV_Assert((_query.getMat().rows == 1 && _query.getMat().cols == dim) || (_query.getMat().rows == dim && _query.getMat().cols == 1));
 
     bin_t bin;
     hashTable.getBin(hashKey, bin);
@@ -258,20 +267,40 @@ int Index<data_t>::searchInBucket(
     address_t addr = bin.addressOfChainList;
     address_t addr_end = addr + coll*entrySize;
     double KNNdist = NNpointQue.top().distance;
+    Mat query = _query.getMat().reshape(1, dim);
 
-    double dist;
-    data_t* data;
-    const data_t* query_p;
-    const data_t* query_end = query + dim;
     while (addr != addr_end)
     {
         /*Distance Calculation*/
-        query_p = query;
-        data = reinterpret_cast<data_t*>(addr);
-        dist = 0.0;
-        while ((query_p != query_end) && (dist < KNNdist))
+        data_t *data = reinterpret_cast<data_t*>(addr);
+        double dist = 0.0;
+        switch (query.depth())
         {
-            dist += NORM((*query_p++) - (*data++));
+        case CV_8U:
+            dist = computeNorm<unsigned char>(query, (unsigned char*)data, KNNdist);
+            break;
+        case CV_8S:
+            dist = computeNorm<signed char>(query, (signed char*)data, KNNdist);
+            break;
+        case CV_16U:
+            dist = computeNorm<unsigned short>(query, (unsigned short*)data, KNNdist);
+            break;
+        case CV_16S:
+            dist = computeNorm<short>(query, (short*)data, KNNdist);
+            break;
+        case CV_32S:
+            dist = computeNorm<int>(query, (int*)data, KNNdist);
+            break;
+        case CV_32F:
+            dist = computeNorm<float>(query, (float*)data, KNNdist);
+            break;
+        case CV_64F:
+            dist = computeNorm<double>(query, (double*)data, KNNdist);
+            break;
+        case CV_16F:
+        default:
+            CV_Assert("Not supported" && false);
+            break;
         }
 
         if (dist < KNNdist)
@@ -293,14 +322,8 @@ int Index<data_t>::searchInBucket(
 }
 
 ///////////// Search Function ////////////////////////
-template <typename data_t>
-void Index<data_t>::linearSearchInNNcandidates(
-    const data_t* query,
-    point_t* point,
-    int K,
-    double epsilon,
-    std::vector<hashKey_t>& bucketList
-) const
+template<typename data_t>
+void cv::bdh::Index<data_t>::linearSearchInNNcandidates(InputArray _query, point_t * point, int K, double epsilon, std::vector<hashKey_t>& bucketList) const
 {
     //生成されたハッシュキーを元にバケットを参照して最近傍点を探索 start//
     priority_queue<point_t> NNpointQue;
@@ -315,7 +338,7 @@ void Index<data_t>::linearSearchInNNcandidates(
     vector<hashKey_t>::iterator keyList_itr_end = bucketList.end();
     for (; keyList_itr != keyList_itr_end; ++keyList_itr)
     {
-        searchInBucket(query, (*keyList_itr).hashKey, NNpointQue);
+        searchInBucket(_query, (*keyList_itr).hashKey, NNpointQue);
     }
     //生成されたハッシュキーを元にバケットを参照して最近傍点を探索 end//
 
@@ -330,7 +353,7 @@ void Index<data_t>::linearSearchInNNcandidates(
 
 template <typename data_t>
 int Index<data_t>::NearestNeighbor(
-    const data_t* query,
+    InputArray _query,
     point_t* point,
     double searchParam,
     search_mode searchMode,
@@ -341,10 +364,10 @@ int Index<data_t>::NearestNeighbor(
 
     // Generate the Bucket Hash key of the needle (begin)//
     vector<hashKey_t> bucketList;
-    int NNC = getBucketList(query, searchParam, searchMode, bucketList);
+    int NNC = getBucketList(_query, searchParam, searchMode, bucketList);
 
     // Generate the Bucket Hash key of the needle (end)//
-    linearSearchInNNcandidates(query, point, K, epsilon, bucketList);
+    linearSearchInNNcandidates(_query, point, K, epsilon, bucketList);
 
     return NNC;// Number of points used to compute the distance
 }
@@ -371,7 +394,7 @@ bool readCorrectClass(const String& filename, std::vector<int>& correctClass)
     return true;
 }
 
-bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement ** & data)
+bool readBinary(const String &path, unsigned &dim, unsigned &num, OutputArray data, int type)
 {
     ifstream ifs(path, ios::in | ios::binary);
     if (ifs.is_open() == false)
@@ -386,12 +409,14 @@ bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement
         dim = dimension;
         num = dataSize;
     }
-    data = new featureElement*[num];
 
-    const int dSize = sizeof(featureElement)*dim;
-    for (unsigned n = 0; n < num; n++) {
-        data[n] = new featureElement[dim];
-        ifs.read((char*)data[n], dSize);
+    data.create(num, dim, type);
+    Mat stub = data.getMat();
+
+    //const int dSize = sizeof(featureElement)*dim;
+    for (size_t n = 0; n < num; n++)
+    {
+        ifs.read((char*)stub.row(n).data, CV_ELEM_SIZE(type)*num);
     }
     ifs.close();
 
@@ -779,7 +804,7 @@ bool Index<data_t>::saveParameters(const String& path) const
         {
             for (int d = 0; d < dim; ++d)
             {
-                ofs << subspace[m].baseVector[sd][d] << "\t";
+                ofs << subspace[m].baseVector.at<double>(sd, d) << "\t";
             }
             ofs << endl;
         }
@@ -810,7 +835,7 @@ bool Index<data_t>::saveParameters(const String& path) const
     {
         for (int d = 0; d < dim; ++d)
         {
-            ofs << lestspace.baseVector[sd][d] << "\t";
+            ofs << lestspace.baseVector.at<double>(sd, d) << "\t";
         }
         ofs << endl;
     }
@@ -868,32 +893,31 @@ double innerProduct(const std::vector<double>& base, const data_t* data)
     return val;
 }
 
-template<typename data_t>
-void Subspace::getPCAdata(data_t* data, double* PCAdata) const
+void Subspace::getPCAdata(const Mat &data, double* PCAdata) const
 {
-    std::vector<std::vector<double> >::const_iterator base_p = baseVector.begin();
-    double* PCAdata_end = PCAdata + subDim;
-    for (; PCAdata != PCAdata_end && base_p != baseVector.end(); PCAdata++)
+    for (size_t i = 0; i < baseVector.rows; i++)
     {
-        *PCAdata = innerProduct(*base_p++, data);
+        *PCAdata = baseVector.row(i).dot(data);
     }
 }
 
-template<typename data_t>
-void Subspace::getPCAdata(data_t * data, std::vector<double>& PCAdata) const
+void cv::bdh::Subspace::getPCAdata(const Mat & data, Mat & PCAdata) const
 {
-    std::vector<std::vector<double> >::const_iterator base_p = baseVector.begin();
-    for ( auto&& it : PCAdata )
+    CV_Assert(data.size() == PCAdata.size());
+    CV_Assert(data.type() == PCAdata.type());
+    Mat stub = PCAdata.reshape(1, 1);
+    for (size_t i = 0; i < baseVector.rows; i++)
     {
-        *it = innerProduct(*base_p++, data);
+        stub.col(i) = baseVector.row(i).dot(data);
     }
 }
 
-template<typename data_t>
 size_t Subspace::getSubHashValue(
-    const data_t* data
+    InputArray _data
     ) const
 {
+    Mat data = _data.getMat().reshape(1, subDim);
+    CV_Assert(subDim == baseVector.rows);
 
     //work space
     double* PCAdata = new double[subDim];
@@ -912,19 +936,20 @@ size_t Index<data_t>::hashFunction(int index)
     size_t hashKey = 0;
     for (int m = 0; m < M; ++m)
     {
-        hashKey += subspace[m].getSubHashValue(originalData.row(index).data);
+        hashKey += subspace[m].getSubHashValue(originalData.row(index));
     }
     return hashKey;
 }
 
 template <typename data_t>
 int Index<data_t>::getBucketList(
-    const data_t* query,
+    InputArray _query,
     double searchParam,
     search_mode searchMode,
     std::vector<hashKey_t>& bucketList
     )const
 {
+    Mat query = _query.getMat();
 
     //部分距離を計算し，優先度の高い順にソート
     layer_t* layer = new layer_t[M];

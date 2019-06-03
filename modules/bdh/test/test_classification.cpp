@@ -52,20 +52,19 @@ bool loadFeature(const String &filename, Mat& data)
 {
     String filePath = MAKE_FULL_PATH(filename);
     unsigned int dim, num;
-    featureElement **original = NULL;
-    bool result = cv::bdh::readBinary(filePath, dim, num, original);
+    bool result = cv::bdh::readBinary(filePath, dim, num, data);
     data = cv::Mat(num, dim, CV_8UC1);
     if (result == true)
     {
         for (size_t y = 0; y < num; y++)
         {
-            memcpy((void*)(data.data + y * data.step), original[y], sizeof(featureElement)*dim);
+            memcpy((void*)(data.data + y * data.step), data.row(y).data, sizeof(featureElement)*dim);
         }
     }
     return result;
 }
 
-bool loadFeature(const cv::String &filename, unsigned &dim, unsigned &num, featureElement** &data)
+bool loadFeature(const cv::String &filename, unsigned &dim, unsigned &num, Mat &data)
 {
     static String dataSetPath = TS::ptr()->get_data_path() + "bdh/";
     String filePath = dataSetPath + filename;
@@ -75,48 +74,24 @@ bool loadFeature(const cv::String &filename, unsigned &dim, unsigned &num, featu
 TEST(BDH_Classification, Load)
 {
     unsigned int num, dim;
-    featureElement** data = NULL;
+    Mat data;
     bool readResult = loadFeature(kFeatureFilename, dim, num, data);
     EXPECT_TRUE(readResult);
     EXPECT_EQ(num, (unsigned int)10000);
     EXPECT_EQ(dim, (unsigned int)128);
-    //delete data point
-    if (data != NULL)
-    {
-        for (size_t n = 0; n < num; n++)
-        {
-            if (data[n] != NULL)
-            {
-                delete[] data[n];
-            }
-        }
-        delete[] data;
-    }
-    data = NULL;
+
     readResult = loadFeature(kQueryFilename, dim, num, data);
     EXPECT_TRUE(readResult);
     EXPECT_EQ(num, (unsigned int)1000);
     EXPECT_EQ(dim, (unsigned int)128);
-    //delete data point
-    if (data != NULL)
-    {
-        for (size_t n = 0; n < num; n++)
-        {
-            if (data[n] != NULL)
-            {
-                delete[] data[n];
-            }
-        }
-        delete[] data;
-    }
-    data = NULL;
+
 }
 
 TEST(BDH_Classification, Classify)
 {
     unsigned int num, dim;
-    featureElement **data = NULL, **query = NULL;
-    cv::Mat matData;
+    featureElement **data = NULL;
+    cv::Mat query, matData;
     bool readResult = loadFeature(kFeatureFilename, matData);
     EXPECT_TRUE(readResult);
     cv::bdh::Index<featureElement> bdh;
@@ -142,7 +117,7 @@ TEST(BDH_Classification, Classify)
     double startTime = getTickCount();
     for (unsigned q = 0; q < nQuery; ++q)
     {
-        NNC[q] = bdh.NearestNeighbor(query[q], KNNpoint[q], searchParam, bdh::search_mode::NumPoints, 1, DBL_MAX);
+        NNC[q] = bdh.NearestNeighbor(query.row(q), KNNpoint[q], searchParam, bdh::search_mode::NumPoints, 1, DBL_MAX);
     }
     double endTime = getTickCount();
 

@@ -20,7 +20,7 @@ namespace bdh {
     * @param num  number of features
     * @param data actual output
     */
-    CV_EXPORTS bool readBinary(const String &path, unsigned &dim, unsigned &num, featureElement** &data);
+    CV_EXPORTS bool readBinary(const String &path, unsigned &dim, unsigned &num, OutputArray data, int type = CV_8UC1);
     CV_EXPORTS bool readCorrectClass(const String& filename, std::vector<int>& correctClass);
 
     typedef unsigned collision_t;//!< type of collision
@@ -552,7 +552,7 @@ namespace bdh {
         int subHashSize;     //!< hash size at subspace = 1<<bit
         double bit;          //!< information volume
         double variance;     //!< sum of variance
-        std::vector<std::vector<double> > baseVector;     //!< base direction[P][dim]
+        Mat baseVector;      //!< base direction[P][dim]
         std::vector<size_t> hashKey;                      //!< hash value of bin corespond to centroid[subHashSize]
         std::vector<double> cellVariance;                 //!< variance in cell[subHashSize]
         std::vector<std::vector<double> > centroidVector; //!< centroid[subHashSize][subDim]
@@ -583,34 +583,24 @@ namespace bdh {
         /**
         * @brief project data into Principal Component space
         */
-        template<typename data_t>
-        void getPCAdata(
-            data_t* data,
-            double* PCAdata) const;
+        void getPCAdata(const Mat & data, double * PCAdata) const;
 
         /**
         * @brief project data into Principal Component space
         */
-        template<typename data_t>
-        void getPCAdata(
-            data_t* data,
-            std::vector<double> &PCAdata) const;
+        void getPCAdata(const Mat & data, Mat & PCAdata) const;
 
         /**
         * @brief get sub hash value
         */
-        template<typename data_t>
-        size_t getSubHashValue(
-            const data_t* data
-        ) const;
+        size_t getSubHashValue(InputArray _data) const;
 
         /**
         * @brief set node param
         */
-        template<typename data_t>
         void setNodeParam(
             node_t* node,
-            data_t* query
+            InputArray _query
         ) const;
 
         /**
@@ -691,7 +681,7 @@ namespace bdh {
 
         ///////////// Search Function ////////////////////////
 
-        void setLayerParam(layer_t * layer, const data_t * query) const;
+        void setLayerParam(layer_t * layer, InputArray _query) const;
 
         int NearBucket_R(const double Radius, layer_t * const layer, const status_t & status, std::vector<hashKey_t>& bucketList) const;
 
@@ -699,16 +689,16 @@ namespace bdh {
 
         int NearBucket_C_list(const double Rbound, layer_t * const layer, std::list<status_t>& statusQue, std::list<status_t>::iterator * itr, std::vector<hashKey_t>& bucketList) const;
 
-        int searchInBucket(const data_t * query, size_t hashKey, std::priority_queue<point_t>& NNpointQue) const;
+        int searchInBucket(InputArray _query, size_t hashKey, std::priority_queue<point_t>& NNpointQue) const;
 
-        void linearSearchInNNcandidates(const data_t * query, point_t* point, int K, double epsilon, std::vector<hashKey_t>& bucketList) const;
+        void linearSearchInNNcandidates(InputArray _query, point_t* point, int K, double epsilon, std::vector<hashKey_t>& bucketList) const;
 
         /**
         * @brief search in Bucket Distance R from query
         * @return number of points in search area
         */
         int NearestNeighbor(
-            const data_t* query,
+            InputArray _query,
             point_t* point,
             double searchParam,
             search_mode searchMode = NumPoints,
@@ -717,7 +707,7 @@ namespace bdh {
         )const;
 
         int getBucketList(
-            const data_t* query,
+            InputArray _query,
             double searchParam,
             search_mode searchMode,
             std::vector<hashKey_t>& bucketList
