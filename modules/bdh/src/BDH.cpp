@@ -10,7 +10,7 @@ const double deltaRate = 50;
 ///************** Indexing *******************/
 namespace cv {
 namespace bdh {
-void cv::bdh::Subspace::setNodeParam(node_t * node, InputArray _query) const
+void Subspace::setNodeParam(node_t * node, InputArray _query) const
 {
     Mat query = _query.getMat().reshape(1, 1);
 
@@ -27,8 +27,7 @@ void cv::bdh::Subspace::setNodeParam(node_t * node, InputArray _query) const
     delete[] PCAquery;
 }
 
-template<typename data_t>
-void cv::bdh::Index<data_t>::setLayerParam(layer_t * layer, InputArray _query) const
+void Index::setLayerParam(layer_t * layer, InputArray _query) const
 {
 
     layer_t* layer_p = layer;
@@ -53,8 +52,8 @@ void cv::bdh::Index<data_t>::setLayerParam(layer_t * layer, InputArray _query) c
 
 }
 
-template <typename data_t>
-int Index<data_t>::NearBucket_R(
+
+int Index::NearBucket_R(
     const double Radius,//探索半径
     layer_t* const layer,//クエリから求めたレイヤごとの部分距離情報
     const status_t& status,//ノードの状態を表す
@@ -109,8 +108,8 @@ int Index<data_t>::NearBucket_R(
     return count;
 }
 
-template <typename data_t>
-int Index<data_t>::NearBucket_C(
+
+int Index::NearBucket_C(
     const double& Lbound,//探索下限
     const double& Ubound,//探索上限
     layer_t* const layer,//クエリから求めたレイヤごとの部分距離情報
@@ -170,8 +169,8 @@ int Index<data_t>::NearBucket_C(
     return count;
 }
 
-template <typename data_t>
-int Index<data_t>::NearBucket_C_list(
+
+int Index::NearBucket_C_list(
     const double Rbound,//探索半径
     layer_t* const layer,//クエリから求めたレイヤごとの部分距離情報
     std::list<status_t>& statusQue,//探索途中のノードを保持
@@ -251,8 +250,9 @@ double computeNorm(Mat& query, const data_t *data, double cutoffDistance)
     return distance;
 }
 
-template <typename data_t>
-int Index<data_t>::searchInBucket(
+#define COMPUTE_NORM(type2, src1, src2, cutoff) computeNorm<type2>(src1, (type2*)src2, cutoff)
+
+int Index::searchInBucket(
     InputArray _query,
     size_t hashKey,
     std::priority_queue<point_t>& NNpointQue
@@ -272,34 +272,18 @@ int Index<data_t>::searchInBucket(
     while (addr != addr_end)
     {
         /*Distance Calculation*/
-        data_t *data = reinterpret_cast<data_t*>(addr);
         double dist = 0.0;
         switch (query.depth())
         {
-        case CV_8U:
-            dist = computeNorm<unsigned char>(query, (unsigned char*)data, KNNdist);
-            break;
-        case CV_8S:
-            dist = computeNorm<signed char>(query, (signed char*)data, KNNdist);
-            break;
-        case CV_16U:
-            dist = computeNorm<unsigned short>(query, (unsigned short*)data, KNNdist);
-            break;
-        case CV_16S:
-            dist = computeNorm<short>(query, (short*)data, KNNdist);
-            break;
-        case CV_32S:
-            dist = computeNorm<int>(query, (int*)data, KNNdist);
-            break;
-        case CV_32F:
-            dist = computeNorm<float>(query, (float*)data, KNNdist);
-            break;
-        case CV_64F:
-            dist = computeNorm<double>(query, (double*)data, KNNdist);
-            break;
-        case CV_16F:
+        case CV_8U:  dist = COMPUTE_NORM(unsigned char,  query, addr, KNNdist); break;
+        case CV_8S:  dist = COMPUTE_NORM(signed char,    query, addr, KNNdist); break;
+        case CV_16U: dist = COMPUTE_NORM(unsigned short, query, addr, KNNdist); break;
+        case CV_16S: dist = COMPUTE_NORM(short,          query, addr, KNNdist); break;
+        case CV_32S: dist = COMPUTE_NORM(int,            query, addr, KNNdist); break;
+        case CV_32F: dist = COMPUTE_NORM(float,          query, addr, KNNdist); break;
+        case CV_64F: dist = COMPUTE_NORM(double,         query, addr, KNNdist); break;
         default:
-            CV_Assert("Not supported" && false);
+            CV_Error(Error::StsUnsupportedFormat, "unsupported type");
             break;
         }
 
@@ -322,8 +306,7 @@ int Index<data_t>::searchInBucket(
 }
 
 ///////////// Search Function ////////////////////////
-template<typename data_t>
-void cv::bdh::Index<data_t>::linearSearchInNNcandidates(InputArray _query, point_t * point, int K, double epsilon, std::vector<hashKey_t>& bucketList) const
+void Index::linearSearchInNNcandidates(InputArray _query, point_t * point, int K, double epsilon, std::vector<hashKey_t>& bucketList) const
 {
     //生成されたハッシュキーを元にバケットを参照して最近傍点を探索 start//
     priority_queue<point_t> NNpointQue;
@@ -351,8 +334,8 @@ void cv::bdh::Index<data_t>::linearSearchInNNcandidates(InputArray _query, point
 }
 
 
-template <typename data_t>
-int Index<data_t>::NearestNeighbor(
+
+int Index::NearestNeighbor(
     InputArray _query,
     point_t* point,
     double searchParam,
@@ -424,13 +407,13 @@ bool readBinary(const String &path, unsigned &dim, unsigned &num, OutputArray da
 }
 
 template <typename data_t>
-void parameterTuning(const Mat& originalData, const PCA& featureSpace, enum tuning_method method = cv::bdh::TUNING_ADVANCED_2013)
+void parameterTuning(const Mat& originalData, const PCA& featureSpace, enum tuning_method method = TUNING_ADVANCED_2013)
 {
     switch (method)
     {
-    case cv::bdh::TUNING_ORIGINAL:
+    case TUNING_ORIGINAL:
         break;
-    case cv::bdh::TUNING_ADVANCED_2013:
+    case TUNING_ADVANCED_2013:
     default:
         parameterTuning_ICCV2013(originalData.cols, originalData.rows, data, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, subspace, lestspace, 0.1, 1.0);
         break;
@@ -526,8 +509,7 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
 
 }
 
-template<typename data_t>
-void cv::bdh::Index<data_t>::Build(InputArray data, PCA::Flags order)
+void Index::Build(InputArray data, PCA::Flags order)
 {
     cv::Mat _data = data.getMat();
     originalData = _data.clone();
@@ -593,8 +575,7 @@ void cv::bdh::Index<data_t>::Build(InputArray data, PCA::Flags order)
     }
 }
 
-template <typename data_t>
-void Index<data_t>::Build(int dim, unsigned num, void** data)
+void Index::Build(int dim, unsigned num, void** data)
 {
     //Principal Component Analysis
     cout << "calculate PCA ." << endl;
@@ -633,8 +614,8 @@ void Index<data_t>::Build(int dim, unsigned num, void** data)
     storePoint();
 }
 
-template <typename data_t>
-Index<data_t>::Index(int dim, unsigned num, void** data)
+
+Index::Index(int dim, unsigned num, void** data)
     : dim(dim)
     , M(0)
     , P(10)
@@ -648,32 +629,28 @@ Index<data_t>::Index(int dim, unsigned num, void** data)
     Build(dim, num, data);
 }
 
-template<typename data_t>
-bool Index<data_t>::loadTable(const String & path)
+bool Index::loadTable(const String & path)
 {
     return hashTable.readTable(path);
 }
 
-template<typename data_t>
-bool Index<data_t>::saveTable(const String & path) const
+bool Index::saveTable(const String & path) const
 {
     return hashTable.writeTable(path);
 }
 
-template<typename data_t>
-bool Index<data_t>::loadPCA(const String & path)
+bool Index::loadPCA(const String & path)
 {
     return false;
 }
 
-template<typename data_t>
-bool Index<data_t>::savePCA(const String & path) const
+bool Index::savePCA(const String & path) const
 {
     return false;
 }
 
-template <typename data_t>
-bool Index<data_t>::loadParameters(const String& path)
+
+bool Index::loadParameters(const String& path)
 {
 
     ifstream ifs(path);
@@ -772,8 +749,8 @@ bool Index<data_t>::loadParameters(const String& path)
     return true;
 }
 
-template <typename data_t>
-bool Index<data_t>::saveParameters(const String& path) const
+
+bool Index::saveParameters(const String& path) const
 {
 
     ofstream ofs(path);
@@ -842,8 +819,7 @@ bool Index<data_t>::saveParameters(const String& path) const
     return true;
 }
 
-template <typename data_t>
-void Index<data_t>::storePoint(/*index_t num, data_t** data*/)
+void Index::storePoint(/*index_t num, data_t** data*/)
 {
     //alloc workspace
     collision_t* collision = new collision_t[hashSize];
@@ -951,8 +927,7 @@ size_t Subspace::getSubHashValue(
     return hashKey[idx];
 }
 
-template <typename data_t>
-size_t Index<data_t>::hashFunction(int index)
+size_t Index::hashFunction(int index)
 {
 
     size_t hashKey = 0;
@@ -963,8 +938,8 @@ size_t Index<data_t>::hashFunction(int index)
     return hashKey;
 }
 
-template <typename data_t>
-int Index<data_t>::getBucketList(
+
+int Index::getBucketList(
     InputArray _query,
     double searchParam,
     search_mode searchMode,

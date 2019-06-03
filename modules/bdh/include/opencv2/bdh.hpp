@@ -614,7 +614,6 @@ namespace bdh {
 
     typedef unsigned index_t;//!< type of index for point
 
-    template <typename data_t>
     class CV_EXPORTS Index
     {
     private:
@@ -729,7 +728,6 @@ namespace bdh {
         );
 
     };
-template class CV_EXPORTS Index<featureElement>;
 }}
 
 #endif

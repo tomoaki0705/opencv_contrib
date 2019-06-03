@@ -94,7 +94,7 @@ TEST(BDH_Classification, Classify)
     cv::Mat query, matData;
     bool readResult = loadFeature(kFeatureFilename, matData);
     EXPECT_TRUE(readResult);
-    cv::bdh::Index<featureElement> bdh;
+    cv::bdh::Index bdh;
 #if 1
     bdh.loadParameters(MAKE_FULL_PATH(kParameterFilename));
     bdh.loadTable(MAKE_FULL_PATH(kHashTableFilename));
