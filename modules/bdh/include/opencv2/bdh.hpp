@@ -654,7 +654,7 @@ namespace bdh {
 
         Index(int dim, unsigned num, void** data);
 
-        void Build(int dim, unsigned num, void** data);
+        void Build(int _dim, unsigned num, void** data);
         void Build(InputArray data, enum PCA::Flags order = PCA::DATA_AS_ROW);
 
         ~Index()
@@ -673,8 +673,6 @@ namespace bdh {
 
         bool loadTable(const String & path);
         bool saveTable(const String & path) const;
-        bool loadPCA(const String & path);
-        bool savePCA(const String & path) const;
         bool loadParameters(const String & path);
         bool saveParameters(const String & path) const;
 

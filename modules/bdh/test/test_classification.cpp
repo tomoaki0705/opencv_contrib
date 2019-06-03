@@ -56,7 +56,7 @@ bool loadFeature(const String &filename, Mat& data)
     data = cv::Mat(num, dim, CV_8UC1);
     if (result == true)
     {
-        for (size_t y = 0; y < num; y++)
+        for (int y = 0; (unsigned)y < num; y++)
         {
             memcpy((void*)(data.data + y * data.step), data.row(y).data, sizeof(featureElement)*dim);
         }
@@ -89,8 +89,7 @@ TEST(BDH_Classification, Load)
 
 TEST(BDH_Classification, Classify)
 {
-    unsigned int num, dim;
-    featureElement **data = NULL;
+    unsigned int dim;
     cv::Mat query, matData;
     bool readResult = loadFeature(kFeatureFilename, matData);
     EXPECT_TRUE(readResult);
@@ -114,15 +113,16 @@ TEST(BDH_Classification, Classify)
         KNNpoint[q] = new point_t[1];
     }
 
-    double startTime = getTickCount();
+    int64 startTime = getTickCount();
     for (unsigned q = 0; q < nQuery; ++q)
     {
         NNC[q] = bdh.NearestNeighbor(query.row(q), KNNpoint[q], searchParam, bdh::search_mode::NumPoints, 1, DBL_MAX);
     }
-    double endTime = getTickCount();
+    int64 endTime = getTickCount();
 
     std::vector<int> reference;
     bool classResult = readCorrectClass(TS::ptr()->get_data_path() + "bdh/correctClass.txt", reference);
+    EXPECT_TRUE(classResult);
 
 
     for (unsigned qv = 0; qv < nQuery; ++qv)

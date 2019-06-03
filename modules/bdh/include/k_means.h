@@ -344,14 +344,13 @@ unsigned K_Means<data_t, centroid_t>::findMaxIndex(int num, double* MinDisTable)
 template<typename data_t, typename centroid_t>
 void K_Means<data_t, centroid_t>::updateMinDisTable(centroid_t* _centroid, int num, data_t** point, double* MinDisTable){
 
-	double dist;
 #ifdef _OPENMP
-#pragma omp parallel for schedule(static) private(dist)
+#pragma omp parallel for schedule(static)
 #endif
 	for (int n = 0; n < num; n++)
 	{
 		//check the distance to the nearest centroid
-		dist = Distance(dim, _centroid, point[n]);
+		double dist = Distance(dim, _centroid, point[n]);
 
 		if (dist < MinDisTable[n])
 		{

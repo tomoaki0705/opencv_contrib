@@ -5,6 +5,7 @@
 #include "Subspace.h"
 #include <BDHtraining.h>
 #include <BDH.h>
+#include <limits>
 const double deltaRate = 50;
 
 ///************** Indexing *******************/
@@ -313,7 +314,7 @@ void Index::linearSearchInNNcandidates(InputArray _query, point_t * point, int K
     //最近傍点保持用のヒープ木を初期化
     for (int i = 0; i < K; ++i)
     {
-        NNpointQue.push(point_t(-1, epsilon));
+        NNpointQue.push(point_t(ULLONG_MAX, epsilon));
     }
 
     //見つけてきたハッシュキーを参照して最近傍点を探索する
@@ -399,7 +400,7 @@ bool readBinary(const String &path, unsigned &dim, unsigned &num, OutputArray da
     //const int dSize = sizeof(featureElement)*dim;
     for (size_t n = 0; n < num; n++)
     {
-        ifs.read((char*)stub.row(n).data, CV_ELEM_SIZE(type)*dim);
+        ifs.read((char*)stub.row((int)n).data, CV_ELEM_SIZE(type)*dim);
     }
     ifs.close();
 
@@ -514,10 +515,7 @@ void Index::Build(InputArray data, PCA::Flags order)
     cv::Mat _data = data.getMat();
     originalData = _data.clone();
     cv::PCA pca(originalData, Mat(), order, order == PCA::DATA_AS_ROW ? originalData.rows : originalData.cols);
-    pca.mean;
-    pca.eigenvectors;
-    pca.eigenvalues;
-    int i = 0;
+
     int length = originalData.rows;
     dim = originalData.cols;
 
@@ -575,8 +573,9 @@ void Index::Build(InputArray data, PCA::Flags order)
     }
 }
 
-void Index::Build(int dim, unsigned num, void** data)
+void Index::Build(int _dim, unsigned num, void** data)
 {
+    dim = _dim;
     //Principal Component Analysis
     cout << "calculate PCA ." << endl;
     PrincipalComponentAnalysis pca;
@@ -638,17 +637,6 @@ bool Index::saveTable(const String & path) const
 {
     return hashTable.writeTable(path);
 }
-
-bool Index::loadPCA(const String & path)
-{
-    return false;
-}
-
-bool Index::savePCA(const String & path) const
-{
-    return false;
-}
-
 
 bool Index::loadParameters(const String& path)
 {
@@ -734,7 +722,7 @@ bool Index::loadParameters(const String& path)
     for (int sd = 0; sd < lestspace.subDim; ++sd)
     {
         Mat stub(1, dim, CV_64FC1);
-        for (size_t i = 0; i < dim; i++)
+        for (int i = 0; i < dim; i++)
         {
             double v;
             ifs >> v;
@@ -826,7 +814,7 @@ void Index::storePoint(/*index_t num, data_t** data*/)
     memset(collision, 0, sizeof(collision_t)*hashSize);
 
     size_t* hashKey = new size_t[originalData.rows];
-    for (index_t n = 0; n < originalData.rows; ++n)
+    for (int n = 0; n < originalData.rows; n++)
     {
         //get hash value
         hashKey[n] = hashFunction(n);
@@ -843,7 +831,7 @@ void Index::storePoint(/*index_t num, data_t** data*/)
         exit(__LINE__);
     }
 
-    for (index_t n = 0; n < originalData.rows; ++n)
+    for (int n = 0; n < originalData.rows; ++n)
     {
         memcpy(entry, originalData.row(n).data, pointSize);
         *reinterpret_cast<index_t*>(entry + pointSize) = n;
@@ -881,7 +869,7 @@ double innerProduct(const base_t *base, const data_t* data, size_t length)
 
 void Subspace::getPCAdata(const Mat &data, double* PCAdata) const
 {
-    size_t i = 0;
+    int i = 0;
     switch (data.depth())
     {
     case CV_8U:  INNER_PRODUCT(i, PCAdata, baseVector, data, unsigned char); break;
@@ -904,7 +892,7 @@ void cv::bdh::Subspace::getPCAdata(const Mat & data, Mat & PCAdata) const
     CV_Assert(data.size() == PCAdata.size());
     CV_Assert(data.type() == PCAdata.type());
     Mat stub = PCAdata.reshape(1, 1);
-    for (size_t i = 0; i < baseVector.rows; i++)
+    for (int i = 0; i < baseVector.rows; i++)
     {
         stub.col(i) = baseVector.row(i).dot(data);
     }
