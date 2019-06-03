@@ -218,8 +218,7 @@ namespace cv {
         }
 
         /* allocation of hash table */
-        bool HashTable::allocTable(
-            collision_t* collision)
+        bool HashTable::allocTable(unsigned* collision)
         {
             using namespace std;
             initialize(entrySize, hashSize);
@@ -255,7 +254,7 @@ namespace cv {
         }
 
         /* read hash table from binary file */
-        bool HashTable::readTable(const std::string& tblFile)
+        bool HashTable::readTable(const String & tblFile)
         {
             using namespace std;
             ifstream ifs(tblFile, ios::in | ios::binary);
@@ -297,7 +296,7 @@ namespace cv {
         }
 
         /* write hash table into binary file */
-        bool HashTable::writeTable(const std::string& tblFile) const
+        bool HashTable::writeTable(const String & tblFile) const
         {
             using namespace std;
             ofstream ofs(tblFile, ios::out | ios::binary);
