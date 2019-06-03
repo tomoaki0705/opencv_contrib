@@ -12,8 +12,8 @@ namespace cv {
 namespace bdh {
 void cv::bdh::Subspace::setNodeParam(node_t * node, InputArray _query) const
 {
-    Mat query = _query.getMat().reshape(1, subDim);
-    CV_Assert(subDim == baseVector.rows);
+    Mat query = _query.getMat().reshape(1, 1);
+
     double* PCAquery = new double[subDim];
     getPCAdata(query, PCAquery);
 
@@ -416,7 +416,7 @@ bool readBinary(const String &path, unsigned &dim, unsigned &num, OutputArray da
     //const int dSize = sizeof(featureElement)*dim;
     for (size_t n = 0; n < num; n++)
     {
-        ifs.read((char*)stub.row(n).data, CV_ELEM_SIZE(type)*num);
+        ifs.read((char*)stub.row(n).data, CV_ELEM_SIZE(type)*dim);
     }
     ifs.close();
 
@@ -519,11 +519,7 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
     for (int d = 0; d < lestspace.subDim; ++d)
     {
         stubCentroid.push_back(lestSet.base[d].mean);
-        std::vector<double> stub;
-        for (auto i = 0; i < dim; i++)
-        {
-            stub.push_back(lestSet.base[d].direction[i]);
-        }
+        Mat stub(1, dim, CV_64FC1, lestSet.base[d].direction);
         lestspace.baseVector.push_back(stub);
     }
     lestspace.centroidVector.push_back(stubCentroid);
@@ -715,12 +711,12 @@ bool Index<data_t>::loadParameters(const String& path)
 
         for (int sd = 0; sd < P; ++sd)
         {
-            std::vector<double> stub;
+            Mat stub(1, dim, CV_64FC1);
             for (int d = 0; d < dim; ++d)
             {
                 double v;
                 ifs >> v;
-                stub.push_back(v);
+                stub.at<double>(0, d) = v;
             }
             stubSpace.baseVector.push_back(stub);
         }
@@ -760,11 +756,12 @@ bool Index<data_t>::loadParameters(const String& path)
 
     for (int sd = 0; sd < lestspace.subDim; ++sd)
     {
-        std::vector<double> stub;
-        for (int d = 0; d < dim; ++d) {
+        Mat stub(1, dim, CV_64FC1);
+        for (size_t i = 0; i < dim; i++)
+        {
             double v;
             ifs >> v;
-            stub.push_back(v);
+            stub.at<double>(0, i) = v;
         }
         lestspace.baseVector.push_back(stub);
     }
@@ -893,13 +890,38 @@ double innerProduct(const std::vector<double>& base, const data_t* data)
     return val;
 }
 
+template<typename base_t, typename data_t>
+double innerProduct(const base_t *base, const data_t* data, size_t length)
+{
+    double val = 0.0;
+    for (size_t i = 0; i < length; i++)
+    {
+        val += base[i] * data[i];
+    }
+    return val;
+}
+
+#define INNER_PRODUCT(index,dst,src1,src2,type2) for(index = 0;index < src1.rows;index++) { dst[index] = innerProduct((double*)src1.row(index).data, (type2*)src2.data, src1.cols); }
+
 void Subspace::getPCAdata(const Mat &data, double* PCAdata) const
 {
-    for (size_t i = 0; i < baseVector.rows; i++)
+    size_t i = 0;
+    switch (data.depth())
     {
-        *PCAdata = baseVector.row(i).dot(data);
+    case CV_8U:  INNER_PRODUCT(i, PCAdata, baseVector, data, unsigned char); break;
+    case CV_8S:  INNER_PRODUCT(i, PCAdata, baseVector, data, char); break;
+    case CV_16U: INNER_PRODUCT(i, PCAdata, baseVector, data, unsigned short); break;
+    case CV_16S: INNER_PRODUCT(i, PCAdata, baseVector, data, short); break;
+    case CV_32S: INNER_PRODUCT(i, PCAdata, baseVector, data, int); break;
+    case CV_32F: INNER_PRODUCT(i, PCAdata, baseVector, data, float); break;
+    case CV_64F: INNER_PRODUCT(i, PCAdata, baseVector, data, double); break;
+    default:
+        CV_Error(Error::StsUnsupportedFormat, "unsupported type");
+        break;
     }
 }
+
+#undef INNER_PRODUCT
 
 void cv::bdh::Subspace::getPCAdata(const Mat & data, Mat & PCAdata) const
 {

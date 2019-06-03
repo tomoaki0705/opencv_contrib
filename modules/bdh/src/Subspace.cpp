@@ -31,11 +31,7 @@ void Subspace::setParameters(const baseset_t& baseSet)
 
     for (int d = 0; d < subDim; d++)
     {
-        std::vector<double> stub;
-        for (auto i = 0; i < dim; i++)
-        {
-            stub.push_back(baseSet.base[d].direction[i]);
-        }
+        Mat stub(1, dim, CV_64FC1, baseSet.base[d].direction);
         baseVector.push_back(stub);
     }
 }
