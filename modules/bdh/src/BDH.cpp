@@ -627,10 +627,32 @@ Index<data_t>::Index(int dim, unsigned num, void** data)
     Build(dim, num, data);
 }
 
+template<typename data_t>
+bool Index<data_t>::loadTable(const String & path)
+{
+    return hashTable.readTable(path);
+}
+
+template<typename data_t>
+bool Index<data_t>::saveTable(const String & path) const
+{
+    return hashTable.writeTable(path);
+}
+
+template<typename data_t>
+bool Index<data_t>::loadPCA(const String & path)
+{
+    return false;
+}
+
+template<typename data_t>
+bool Index<data_t>::savePCA(const String & path) const
+{
+    return false;
+}
+
 template <typename data_t>
-bool Index<data_t>::loadParameters(
-    const String& path
-)
+bool Index<data_t>::loadParameters(const String& path)
 {
 
     ifstream ifs(path);

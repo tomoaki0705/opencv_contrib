@@ -297,7 +297,7 @@ namespace cv {
         }
 
         /* write hash table into binary file */
-        bool HashTable::writeTable(const std::string& tblFile)
+        bool HashTable::writeTable(const std::string& tblFile) const
         {
             using namespace std;
             ofstream ofs(tblFile, ios::out | ios::binary);

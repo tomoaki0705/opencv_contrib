@@ -417,7 +417,7 @@ namespace bdh {
         */
         bool writeTable(
             const String& tblFile//!< [in] file path
-        );
+        ) const;
 
     };
 
@@ -682,6 +682,10 @@ namespace bdh {
             return variance;
         }
 
+        bool loadTable(const String & path);
+        bool saveTable(const String & path) const;
+        bool loadPCA(const String & path);
+        bool savePCA(const String & path) const;
         bool loadParameters(const String & path);
         bool saveParameters(const String & path) const;
 

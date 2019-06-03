@@ -44,11 +44,13 @@ namespace opencv_test { namespace {
     const cv::String kQueryFilename = "sift1K.ucquery";
     const cv::String kPcaFilename = "pca.dat";
     const cv::String kParameterFilename = "parameter.bdh";
+    const cv::String kHashTableFilename = "BDHtable.tbl";
+
+#define MAKE_FULL_PATH(path) TS::ptr()->get_data_path() + "bdh/" + path
 
 bool loadFeature(const String &filename, Mat& data)
 {
-    static String dataSetPath = TS::ptr()->get_data_path() + "bdh/";
-    String filePath = dataSetPath + filename;
+    String filePath = MAKE_FULL_PATH(filename);
     unsigned int dim, num;
     featureElement **original = NULL;
     bool result = cv::bdh::readBinary(filePath, dim, num, original);
@@ -118,7 +120,12 @@ TEST(BDH_Classification, Classify)
     bool readResult = loadFeature(kFeatureFilename, matData);
     EXPECT_TRUE(readResult);
     cv::bdh::Index<featureElement> bdh;
+#if 1
+    bdh.loadParameters(MAKE_FULL_PATH(kParameterFilename));
+    bdh.loadTable(MAKE_FULL_PATH(kHashTableFilename));
+#else
     bdh.Build(matData);
+#endif
 
     double searchParam = static_cast<unsigned>(bdh.get_nDdataPoints()*0.001);
     cout << "read query point set." << endl;
