@@ -11,6 +11,8 @@ const double deltaRate = 50;
 ///************** Indexing *******************/
 namespace cv {
 namespace bdh {
+int Subspace::dim;
+
 void Subspace::setNodeParam(node_t * node, InputArray _query) const
 {
     Mat query = _query.getMat().reshape(1, 1);
@@ -896,23 +898,6 @@ void cv::bdh::Subspace::getPCAdata(const Mat & data, Mat & PCAdata) const
     {
         stub.col(i) = baseVector.row(i).dot(data);
     }
-}
-
-size_t Subspace::getSubHashValue(
-    InputArray _data
-    ) const
-{
-    Mat data = _data.getMat().reshape(1, subDim);
-    CV_Assert(subDim == baseVector.rows);
-
-    //work space
-    double* PCAdata = new double[subDim];
-
-    getPCAdata(data, PCAdata);
-    int idx = NearestNeighbor(subDim, subHashSize, centroidVector, PCAdata);
-    delete[] PCAdata;
-
-    return hashKey[idx];
 }
 
 size_t Index::hashFunction(int index)

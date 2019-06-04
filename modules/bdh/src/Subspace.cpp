@@ -5,7 +5,23 @@
 #include <algorithm>
 
 namespace cv { namespace bdh {
-int Subspace::dim;
+
+size_t Subspace::getSubHashValue(
+    InputArray _data
+) const
+{
+    Mat data = _data.getMat().reshape(1, subDim);
+    CV_Assert(subDim == baseVector.rows);
+
+    //work space
+    double* PCAdata = new double[subDim];
+
+    getPCAdata(data, PCAdata);
+    int idx = NearestNeighbor(subDim, subHashSize, centroidVector, PCAdata);
+    delete[] PCAdata;
+
+    return hashKey[idx];
+}
 
 void Subspace::setParameters(const baseset_t& baseSet)
 {
