@@ -46,31 +46,31 @@ public:
 
 template <typename data_t>
 void PrincipalComponentAnalysis::executePCA(
-	int dim, 
+	int _dim, 
 	size_t num, 
 	data_t** data)
 {
 	//ŸŒ³”•Ï‚í‚Á‚½‚çƒƒ‚ƒŠŠm•Û‚µ‚È‚¨‚µ
-	resetDimension(dim);
+	resetDimension(_dim);
 
 	//ŠeŠî’ê‚Ì•½‹Ï‚Æ•ªU‹¤•ªUs—ñ‚ğ“¾‚é
 #ifdef SHOW_PROGRESS
 	cout << "calclate covariance matrix" << endl;
 	double timeStart = GetCPUTime();
 #endif
-	double* Mean = new double[dim];
-	double** covariance = new double*[dim];
-	for (int d = 0; d < dim; ++d)
+	double* Mean = new double[_dim];
+	double** covariance = new double*[_dim];
+	for (int d = 0; d < _dim; ++d)
 	{
-		covariance[d] = new double[dim];
+		covariance[d] = new double[_dim];
 	}
-	calculateCovarianceMatrix(dim, num, data, Mean, covariance);
+	calculateCovarianceMatrix(_dim, num, data, Mean, covariance);
 
-	Mat Cov(dim, dim, CV_64FC1);
-	for (int d = 0; d < dim; ++d)
+	Mat Cov(_dim, _dim, CV_64FC1);
+	for (int d = 0; d < _dim; ++d)
 	{
 		Cov.at<double>(d, d) = covariance[d][d];
-		for (int d2 = d + 1; d2 < dim; ++d2)
+		for (int d2 = d + 1; d2 < _dim; ++d2)
 		{
 			Cov.at<double>(d, d2) = Cov.at<double>(d2, d) = covariance[d][d2];
 		}
@@ -87,24 +87,24 @@ void PrincipalComponentAnalysis::executePCA(
 	eigen(Cov, EigVal, EigVec);
 
 	/*copy the Eigen values and eigen vectors*/
-	for (int d = dim - ZeroCount; d<dim; d++)
+	for (int d = _dim - ZeroCount; d<_dim; d++)
 	{
 		EigVal.at<double>(d) = 0.0;
 	}
 
-	for (int d2, d = 0; d < dim; d++)
+	for (int d2, d = 0; d < _dim; d++)
 	{
-		for (d2 = 0; d2 < dim; d2++)
+		for (d2 = 0; d2 < _dim; d2++)
 		{
 			pcDir[d].direction[d2] = EigVec.at<double>(d, d2);
 		}
 
 		pcDir[d].variance = EigVal.at<double>(d);
-		pcDir[d].mean = innerProduct(dim, Mean, pcDir[d].direction);
+		pcDir[d].mean = innerProduct(_dim, Mean, pcDir[d].direction);
 	}
 
 	//sort int Descending order of variance
-	sort(pcDir, pcDir + dim);
+	sort(pcDir, pcDir + _dim);
 
 #ifdef SHOW_PROGRESS
 	timeEnd = GetCPUTime();
@@ -116,78 +116,78 @@ void PrincipalComponentAnalysis::executePCA(
 	EigVal.release();
 	EigVec.release();
 	delete[] Mean;
-	for (int d = 0; d < dim; ++d)
+	for (int d = 0; d < _dim; ++d)
 	{
 		delete[] covariance[d];
 	}
 	delete[] covariance;
 }
 
-template <typename data_t>
-bool PrincipalComponentAnalysis::executePCAcorelationCoefficient(
-	int dim, 
-	int num, 
-	data_t** data
-	)
-{
-	//ŸŒ³”•Ï‚í‚Á‚½‚çƒƒ‚ƒŠŠm•Û‚µ‚È‚¨‚µ
-	resetDimension(dim);
-
-	//ŠeŠî’ê‚Ì•½‹Ï‚Æ•ªU‹¤•ªUs—ñ‚ğ“¾‚é
-	double* Mean = new double[dim];
-	Mat CorCoe(dim, dim, CV_64FC1);
-	calCovarianceMatrix(dim, num, data, Mean, CorCoe);
-
-	//³‹K‰»‘ŠŠÖŒW”‚ğ“¾‚é
-	calCorelationCoefficient(CorCoe);
-
-	/*Calculate Eigen values and eigen vectors*/
-	Mat EigVal, EigVec;
-	EigenFunction(dim, Cov, EigVal, EigVec);
-	EigVal.release();
-	CorCoe.release();
-
-	/*calculate Mean at Principal Component Space if need*/
-	if (!PCAmean){
-		PCAmean = new double[dim];
-	}
-	for (d = 0; d < dim; d++){
-		PCAmean[d] = InnerProduct(&EigVec.at<double>(d, 0), Mean, dim);
-	}
-	delete[] Mean;
-
-	double t;
-	if (!Variance){
-		Variance = new double[dim];
-	}
-	SortStructure_CV* SS = new SortStructure_CV[dim];
-	for (d = 0; d < dim; d++){
-		Variance[d] = 0;
-		for (n = 0; n < num; n++){
-			t = InnerProduct(&EigVec.at<double>(d, 0), data[n], dim) - PCAmean[d];
-			Variance[d] += t*t;
-		}
-		SS[d].idx = d;
-		SS[d].value = Variance[d] / num;
-	}
-
-	/*pass the Eigen values and eigen vectors*/
-	qsort(SS, dim, sizeof(SortStructure), DesendIdx);
-	if (!EigenVector){
-		EigenVector = new double*[dim];
-		for (d = 0; d < dim; d++){
-			EigenVector[d] = new double[dim];
-		}
-	}
-	for (d = 0; d < dim; d++){
-		Variance[d] = SS[d].value;
-		for (d2 = 0; d2 < dim; d2++){
-			EigenVector[d][d2] = EigVec.at<double>(SS[d].idx, d2);
-		}
-	}
-	delete[] SS;
-	EigVec.release();
-
-	return true;
-}
+//template <typename data_t>
+//bool PrincipalComponentAnalysis::executePCAcorelationCoefficient(
+//	int dim, 
+//	int num, 
+//	data_t** data
+//	)
+//{
+//	//ŸŒ³”•Ï‚í‚Á‚½‚çƒƒ‚ƒŠŠm•Û‚µ‚È‚¨‚µ
+//	resetDimension(dim);
+//
+//	//ŠeŠî’ê‚Ì•½‹Ï‚Æ•ªU‹¤•ªUs—ñ‚ğ“¾‚é
+//	double* Mean = new double[dim];
+//	Mat CorCoe(dim, dim, CV_64FC1);
+//	calCovarianceMatrix(dim, num, data, Mean, CorCoe);
+//
+//	//³‹K‰»‘ŠŠÖŒW”‚ğ“¾‚é
+//	calCorelationCoefficient(CorCoe);
+//
+//	/*Calculate Eigen values and eigen vectors*/
+//	Mat EigVal, EigVec;
+//	EigenFunction(dim, Cov, EigVal, EigVec);
+//	EigVal.release();
+//	CorCoe.release();
+//
+//	/*calculate Mean at Principal Component Space if need*/
+//	if (!PCAmean){
+//		PCAmean = new double[dim];
+//	}
+//	for (d = 0; d < dim; d++){
+//		PCAmean[d] = InnerProduct(&EigVec.at<double>(d, 0), Mean, dim);
+//	}
+//	delete[] Mean;
+//
+//	double t;
+//	if (!Variance){
+//		Variance = new double[dim];
+//	}
+//	SortStructure_CV* SS = new SortStructure_CV[dim];
+//	for (d = 0; d < dim; d++){
+//		Variance[d] = 0;
+//		for (n = 0; n < num; n++){
+//			t = InnerProduct(&EigVec.at<double>(d, 0), data[n], dim) - PCAmean[d];
+//			Variance[d] += t*t;
+//		}
+//		SS[d].idx = d;
+//		SS[d].value = Variance[d] / num;
+//	}
+//
+//	/*pass the Eigen values and eigen vectors*/
+//	qsort(SS, dim, sizeof(SortStructure), DesendIdx);
+//	if (!EigenVector){
+//		EigenVector = new double*[dim];
+//		for (d = 0; d < dim; d++){
+//			EigenVector[d] = new double[dim];
+//		}
+//	}
+//	for (d = 0; d < dim; d++){
+//		Variance[d] = SS[d].value;
+//		for (d2 = 0; d2 < dim; d2++){
+//			EigenVector[d][d2] = EigVec.at<double>(SS[d].idx, d2);
+//		}
+//	}
+//	delete[] SS;
+//	EigVec.release();
+//
+//	return true;
+//}
 #endif

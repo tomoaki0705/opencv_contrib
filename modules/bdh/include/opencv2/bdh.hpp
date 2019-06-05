@@ -116,10 +116,10 @@ namespace bdh {
         * @brief constructor
         */
         status_t(
-            const int& m,           //!< index of layer
-            const int& nodeIdx,     //!< index of nodes
-            const size_t& hashKey,  //!< hash value
-            const double& dist)     //!< distance
+            const int& _m,           //!< index of layer
+            const int& _nodeIdx,     //!< index of nodes
+            const size_t& _hashKey,  //!< hash value
+            const double& _dist)     //!< distance
             : m(m)
             , nodeIdx(nodeIdx)
             , dist(dist)
@@ -130,7 +130,7 @@ namespace bdh {
         * @brief constructor
         */
         status_t(
-            const int& m            //!< index of layer
+            const int& _m            //!< index of layer
             )
             : m(m)
             , nodeIdx(0)
@@ -159,10 +159,10 @@ namespace bdh {
         * @brief constructor. allocate memory of nodeIdx and deep copied.
         */
         hashKey_t(
-            size_t hashKey, //!< hash value
-            double dist)    //!< distance
-            : hashKey(hashKey)
-            , dist(dist)
+            size_t _hashKey, //!< hash value
+            double _dist)    //!< distance
+            : hashKey(_hashKey)
+            , dist(_dist)
         {}
 
         void setVariable(size_t _hashKey, double _dist)
@@ -192,20 +192,20 @@ namespace bdh {
         * @brief constructor
         */
         point_t(
-            const size_t& index,    //!< [in] the index of point 
-            const double& distance  //!< [in] the distance from query
+            const size_t& _index,    //!< [in] the index of point 
+            const double& _distance  //!< [in] the distance from query
         )
-            : index(index)
-            , distance(distance)
+            : index(_index)
+            , distance(_distance)
         {}
 
         /**
         * @brief constructor
         */
         point_t(
-            const size_t& index     //!< [in] the index of point 
+            const size_t& _index     //!< [in] the index of point 
         )
-            : index(index)
+            : index(_index)
         {}
 
         /**
@@ -276,9 +276,9 @@ namespace bdh {
         /**
         * @brief constructor
         */
-        HashTable(size_t entrySize, size_t hashSize)
-            : entrySize(entrySize)
-            , hashSize(hashSize)
+        HashTable(size_t _entrySize, size_t _hashSize)
+            : entrySize(_entrySize)
+            , hashSize(_hashSize)
         {
             initialize(entrySize, hashSize);
         }

@@ -133,13 +133,13 @@ protected:
 */
 template<typename data_t>
 double superPCA::innerProduct(
-	int dim,
+	int _dim,
 	data_t* data,
 	double* dir
 	)
 {
 	double val = 0.0;
-	for (int d = 0; d < dim; ++d)
+	for (int d = 0; d < _dim; ++d)
 	{
 		val += data[d] * dir[d];
 	}
@@ -163,7 +163,7 @@ void superPCA::projectToPCspace(
 
 template<typename data_t>
 void superPCA::calculateCovarianceMatrix(
-	int dim, size_t num, data_t** data,
+	int _dim, size_t num, data_t** data,
 	double* mean, double** covariance)
 {
 
@@ -175,7 +175,7 @@ void superPCA::calculateCovarianceMatrix(
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-			for (int d = 0; d < dim; d++)
+			for (int d = 0; d < _dim; d++)
 			{
 				mean[d] = 0;
 				for (unsigned n = 0; n < num; n++)
@@ -189,14 +189,14 @@ void superPCA::calculateCovarianceMatrix(
 #ifdef _OPENMP
 #pragma omp for schedule(guided)
 #endif
-			for (int d = 0; d<dim; d++)
+			for (int d = 0; d<_dim; d++)
 			{
 				double cov;
 				double mean_d2;
 				double mean_d = mean[d];
 				data_t** data_n;
 				data_t** data_n_End;
-				for (int d2 = d; d2<dim; d2++)
+				for (int d2 = d; d2<_dim; d2++)
 				{
 					mean_d2 = mean[d2];
 					cov = 0;
@@ -211,8 +211,8 @@ void superPCA::calculateCovarianceMatrix(
 			}
 		}
 
-		bool* flag = new bool[dim];
-		for (int d = 0; d < dim; d++)
+		bool* flag = new bool[_dim];
+		for (int d = 0; d < _dim; d++)
 		{
 			if (covariance[d][d] < 1.0e-10)
 			{
@@ -224,9 +224,9 @@ void superPCA::calculateCovarianceMatrix(
 			}
 		}
 
-		for (int d = 0; d < dim; d++)
+		for (int d = 0; d < _dim; d++)
 		{
-			for (int d2 = d + 1; d2<dim; d2++)
+			for (int d2 = d + 1; d2<_dim; d2++)
 			{
 				if (flag[d] && flag[d2]){
 					if (covariance[d2][d] * covariance[d2][d]>(1 - 1.0e-10)*(covariance[d][d] * covariance[d2][d2]))
@@ -238,7 +238,7 @@ void superPCA::calculateCovarianceMatrix(
 		}
 
 		ZeroCount = 0;
-		for (int d = 0; d<dim; d++){
+		for (int d = 0; d<_dim; d++){
 			if (!flag[d])
 			{
 				++ZeroCount;

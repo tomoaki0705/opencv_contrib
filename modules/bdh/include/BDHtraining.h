@@ -415,6 +415,10 @@ namespace bdh {
         }
     }
 
+    inline double square(double x)
+    {
+        return x*x;
+    }
 
     template <typename data_t>
     void BDHtraining<data_t>::calclateCentroid(
@@ -472,11 +476,6 @@ namespace bdh {
         }
 
         delete[] k_means;
-    }
-
-    inline double square(double x)
-    {
-        return x*x;
     }
 
     template <typename data_t>

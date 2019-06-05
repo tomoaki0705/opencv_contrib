@@ -410,20 +410,6 @@ bool readBinary(const String &path, unsigned &dim, unsigned &num, OutputArray da
 }
 
 template <typename data_t>
-void parameterTuning(const Mat& originalData, const PCA& featureSpace, enum tuning_method method = TUNING_ADVANCED_2013)
-{
-    switch (method)
-    {
-    case TUNING_ORIGINAL:
-        break;
-    case TUNING_ADVANCED_2013:
-    default:
-        parameterTuning_ICCV2013(originalData.cols, originalData.rows, data, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, subspace, lestspace, 0.1, 1.0);
-        break;
-    }
-}
-
-template <typename data_t>
 void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t * const base, int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, double &variance, HashTable &hashTable, double &delta, std::vector<Subspace> &subspace, Subspace& lestspace, double bit_step = 1.0, double sampling_rate = 1.0)
 {
     hashSize = (size_t(1) << bit);//hash size is 2^bit
