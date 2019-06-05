@@ -10,8 +10,7 @@ size_t Subspace::getSubHashValue(
     InputArray _data
 ) const
 {
-    Mat data = _data.getMat().reshape(1, subDim);
-    CV_Assert(subDim == baseVector.rows);
+    Mat data = _data.getMat().reshape(1, baseVector.cols);
 
     //work space
     double* PCAdata = new double[subDim];
