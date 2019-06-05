@@ -53,14 +53,6 @@ bool loadFeature(const String &filename, Mat& data)
     String filePath = MAKE_FULL_PATH(filename);
     unsigned int dim, num;
     bool result = cv::bdh::readBinary(filePath, dim, num, data);
-    data = cv::Mat(num, dim, CV_8UC1);
-    if (result == true)
-    {
-        for (int y = 0; (unsigned)y < num; y++)
-        {
-            memcpy((void*)(data.data + y * data.step), data.row(y).data, sizeof(featureElement)*dim);
-        }
-    }
     return result;
 }
 
@@ -94,7 +86,7 @@ TEST(BDH_Classification, Classify)
     bool readResult = loadFeature(kFeatureFilename, matData);
     EXPECT_TRUE(readResult);
     cv::bdh::Index bdh;
-#if 1
+#if 0
     bdh.loadParameters(MAKE_FULL_PATH(kParameterFilename));
     bdh.loadTable(MAKE_FULL_PATH(kHashTableFilename));
 #else
