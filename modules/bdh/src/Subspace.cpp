@@ -29,7 +29,7 @@ void Subspace::setParameters(const baseset_t& baseSet)
     subHashSize = baseSet.k;
     variance = baseSet.variance;
 
-    for (size_t i = 0; i < subHashSize; i++)
+    for (size_t i = 0; i < (unsigned)subHashSize; i++)
     {
         cellVariance.push_back(baseSet.cellVariance[i]);
     }

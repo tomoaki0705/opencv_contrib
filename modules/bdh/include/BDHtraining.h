@@ -108,7 +108,7 @@ namespace bdh {
         * @brief getter
         * @return baseSet
         */
-        const baseset_t* const getBaseSet()
+        const baseset_t* getBaseSet() const 
         {
             return baseSet;
         }

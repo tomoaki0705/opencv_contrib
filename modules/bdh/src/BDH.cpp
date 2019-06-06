@@ -246,7 +246,7 @@ template <typename data_t>
 double computeNorm(Mat& query, const data_t *data, double cutoffDistance)
 {
     double distance = 0.0;
-    for (size_t i = 0; i < query.rows && distance < cutoffDistance; i++)
+    for (int i = 0; i < query.rows && distance < cutoffDistance; i++)
     {
         distance += NORM(query.data[i] - (*data++));
     }
@@ -514,13 +514,13 @@ void Index::Build(InputArray data, PCA::Flags order)
         base[d].mean = (double)pca.mean.at<float>(d);
         base[d].variance = pca.eigenvalues.at<float>(d);
         base[d].direction = new double[dim];    // pca.eigenvectors
-        for (size_t x = 0; x < dim; x++)
+        for (int x = 0; x < dim; x++)
         {
             base[d].direction[x] = (double)((float*)(pca.eigenvectors.data + d * pca.eigenvectors.step))[x];
         }
     }
     featureElement **convertData = new featureElement*[length];
-    for (size_t n = 0; n < length; n++)
+    for (int n = 0; n < length; n++)
     {
         convertData[n] = new featureElement[dim];
         memcpy(convertData[n], (featureElement*)originalData.data + n * originalData.step, sizeof(featureElement) * dim);
@@ -548,7 +548,7 @@ void Index::Build(InputArray data, PCA::Flags order)
 
     if (convertData != NULL)
     {
-        for (size_t n = 0; n < length; n++)
+        for (int n = 0; n < length; n++)
         {
             if (convertData[n] != NULL)
             {
@@ -602,8 +602,8 @@ void Index::Build(int _dim, unsigned num, void** data)
 }
 
 
-Index::Index(int dim, unsigned num, void** data)
-    : dim(dim)
+Index::Index(int _dim, unsigned num, void** data)
+    : dim(_dim)
     , M(0)
     , P(10)
     , bit(0)
@@ -927,7 +927,6 @@ int Index::getBucketList(
         //’¸“_”‚É‘Î‚µ‚ÄŽŸŒ³”‚ª‘å‚«‚¢‚Ù‚ÇAç’·‚É‚È‚é
         double* lestSpaceVal = new double[lestspace.dim];
         lestspace.getPCAdata(query, lestSpaceVal);
-        const double lestSpaceDist = lestspace.getDistanceToCentroid(lestSpaceVal, 0);
         delete[] lestSpaceVal;
 
         //RadiusˆÈ‰º‚Ì‹——£‚ð’Tõ

@@ -63,7 +63,7 @@ public:
     /*
     * @brief dimension getter
     */
-    const int getDimension() const
+    int getDimension() const
     {
         return dim;
     }
@@ -249,14 +249,14 @@ void superPCA::calculateCovarianceMatrix(
 
 template<typename data_t>
 void superPCA::calculateCoefficientMatrix(
-	int dim, size_t num, data_t** data,
+	int _dim, size_t num, data_t** data,
 	double* mean, double** coefficient)
 {
-	calculateCovarianceMatrix(dim, num, data, mean, coefficient);
+	calculateCovarianceMatrix(_dim, num, data, mean, coefficient);
 
-	for (int d = 0; d < dim; ++d)
+	for (int d = 0; d < _dim; ++d)
 	{
-		for (int d2 = d + 1; d2 < dim; ++d2)
+		for (int d2 = d + 1; d2 < _dim; ++d2)
 		{
 			coefficient[d][d2] /= sqrt(coefficient[d][d] * coefficient[d2][d2]);
 			coefficient[d2][d] = coefficient[d][d2];

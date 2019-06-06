@@ -64,7 +64,7 @@ public:
 	* @brief centroid getter
 	* @return centroid
 	*/
-	double** const getCentroid()const
+	double** getCentroid() const
 	{
 		return centroid;
 	}

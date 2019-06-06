@@ -30,49 +30,49 @@ struct point_t
 	* @brief constructor
 	*/
 	point_t(
-		const size_t& index,	//!< [in] the index of point 
-		data_t* addressOfpoint, //!< [in] the address of point 
-		const double& distance	//!< [in] the distance from query
+		const size_t& _index,	//!< [in] the index of point 
+		data_t* _addressOfpoint, //!< [in] the address of point 
+		const double& _distance	//!< [in] the distance from query
 		)
-		: index(index)
-		, addressOfpoint(addressOfpoint)
-		, distance(distance)
+		: index(_index)
+		, addressOfpoint(_addressOfpoint)
+		, distance(_distance)
 	{}
 
 	/**
 	* @brief constructor
 	*/
 	point_t(
-		const size_t& index,	//!< [in] the index of point 
-		const double& distance	//!< [in] the distance from query
+		const size_t& _index,	//!< [in] the index of point 
+		const double& _distance	//!< [in] the distance from query
 		)
-		: index(index)
-		, distance(distance)
+		: index(_index)
+		, distance(_distance)
 	{}
 
 	/**
 	* @brief constructor
 	*/
 	point_t(
-		const size_t& index,	//!< [in] the index of point 
-		data_t* addressOfpoint	//!< [in] the address of point
+		const size_t& _index,	//!< [in] the index of point 
+		data_t* _addressOfpoint	//!< [in] the address of point
 		)
-		: index(index)
-		, addressOfpoint(addressOfpoint)
+		: index(_index)
+		, addressOfpoint(_addressOfpoint)
 	{}
 
 	/**
 	* @brief set member variables
 	*/
 	void setMemberVariable(
-		const size_t& index,	//!< [in] the index of point
-		data_t* addressOfpoint,	//!< [in] the address of point
-		const double& distance	//!< [in] the distance from query
+		const size_t& _index,	//!< [in] the index of point
+		data_t* _addressOfpoint,	//!< [in] the address of point
+		const double& _distance	//!< [in] the distance from query
 		)
 	{
-		this->index = index;
-		this->addressOfpoint = addressOfpoint;
-		this->distance = distance;
+		index = _index;
+		addressOfpoint = _addressOfpoint;
+		distance = _distance;
 	}
 
 	/**
