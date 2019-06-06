@@ -120,10 +120,10 @@ namespace bdh {
             const int& _nodeIdx,     //!< index of nodes
             const size_t& _hashKey,  //!< hash value
             const double& _dist)     //!< distance
-            : m(m)
-            , nodeIdx(nodeIdx)
-            , dist(dist)
-            , hashKey(hashKey)
+            : m(_m)
+            , nodeIdx(_nodeIdx)
+            , dist(_dist)
+            , hashKey(_hashKey)
         {}
     
         /**
@@ -132,7 +132,7 @@ namespace bdh {
         status_t(
             const int& _m            //!< index of layer
             )
-            : m(m)
+            : m(_m)
             , nodeIdx(0)
             , dist(0.0)
             , hashKey(0)
