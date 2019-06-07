@@ -33,6 +33,10 @@ namespace bdh {
     {
         collision_t collision;       //!< collision
         address_t addressOfChainList;//!< head address of chain list
+        bin_t()
+        : collision(0)
+        , addressOfChainList(nullptr)
+        {}
     };
 
     enum search_mode
