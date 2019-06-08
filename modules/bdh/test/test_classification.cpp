@@ -93,7 +93,7 @@ TEST(BDH_Classification, Classify)
     bdh.Build(matData);
 #endif
 
-    double searchParam = static_cast<unsigned>(bdh.get_nDdataPoints()*0.001);
+    double searchParam = bdh.get_nDdataPoints()*0.001;
     cout << "read query point set." << endl;
     unsigned nQuery;
     loadFeature(kQueryFilename, dim, nQuery, query);
@@ -124,6 +124,56 @@ TEST(BDH_Classification, Classify)
     cout << "average query time : " << ((endTime - startTime) / (cv::getTickFrequency() / 1000.)) / nQuery << " ms" << endl;
 
     
+}
+
+TEST(BDH_Classification, Regression)
+{
+    const int kDimension = 128;
+    const int kLength = 10000;
+    Mat originalData = Mat(kLength, kDimension, CV_8U);
+    RNG& rng = theRNG();
+    rng.fill(originalData, cv::RNG::UNIFORM, 0, UCHAR_MAX + 1);
+
+    cv::bdh::Index bdh;
+    bdh.Build(originalData);
+
+    std::vector<unsigned int> counter(kLength);
+    std::vector<cv::Mat> averageVector(kLength);
+    double searchParam = 10;// bdh.get_nDdataPoints()*0.01;
+
+    // generate average of each space
+    for (int i = 0; i < originalData.rows; i++)
+    {
+        cv::bdh::point_t dummy;
+        Mat extractedStub = originalData.row(i);
+        Mat convertedStub;
+        convert(extractedStub, convertedStub, CV_64F);
+
+        int classIndex = bdh.NearestNeighbor(extractedStub, &dummy, searchParam, bdh::search_mode::NumPoints, 1, DBL_MAX);
+        if (averageVector[classIndex].empty())
+        {
+            counter[classIndex] = 1;
+            averageVector[classIndex] = convertedStub;
+        }
+        else
+        {
+            counter[classIndex]++;
+            averageVector[classIndex] += convertedStub;
+        }
+    }
+
+    for (size_t i = 0; i < averageVector.size(); i++)
+    {
+        if (counter[i] != 0)
+        {
+            cv::bdh::point_t dummy;
+            Mat mean;
+            convert(averageVector[i] / counter[i], mean, CV_8U);
+            int classIndex = bdh.NearestNeighbor(mean, &dummy, searchParam, bdh::search_mode::NumPoints, 1, DBL_MAX);
+            EXPECT_EQ(i, classIndex);
+        }
+    }
+
 }
 
 }} // namespace
