@@ -44,7 +44,18 @@ public:
 	/**
 	* @brief default constructor
 	*/
-	K_Means();
+    K_Means()
+        : dim(0)
+        , K(0)
+        , error(0.0)
+        , centroid_size(nullptr)
+        , centroid_error(nullptr)
+        , centroid(nullptr)
+        , CONVERGENCE_RATE(1.0e-5)
+        , CONVERGENCE_LOOP(UINT_MAX)
+    {
+        cout << "sizeof" << sizeof(data_t) << endl;
+    }
 
 	/**
 	* @brief destructor
@@ -124,18 +135,6 @@ private:
 };
 
 template<typename data_t, typename centroid_t>
-K_Means<data_t, centroid_t>::K_Means()
-	: dim(0)
-	, K(0)
-	, error(0.0)
-	, centroid_size(nullptr)
-	, centroid_error(nullptr)
-	, centroid(nullptr)
-	, CONVERGENCE_RATE(1.0e-5)
-	, CONVERGENCE_LOOP(UINT_MAX)
-{}
-
-template<typename data_t, typename centroid_t>
 K_Means<data_t, centroid_t>::~K_Means()
 {
 	if (centroid != nullptr)
@@ -148,11 +147,17 @@ K_Means<data_t, centroid_t>::~K_Means()
 		centroid = nullptr;
 	}
 
-	delete[] centroid_error;
-	centroid_error = nullptr;
+    if (centroid_error != nullptr)
+    {
+        delete[] centroid_error;
+        centroid_error = nullptr;
+    }
 
-	delete[] centroid_size;
-	centroid_size = nullptr;
+    if (centroid_size != nullptr)
+    {
+        delete[] centroid_size;
+        centroid_size = nullptr;
+    }
 }
 
 template<typename data_t, typename centroid_t>
