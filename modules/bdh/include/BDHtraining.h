@@ -206,8 +206,9 @@ namespace bdh {
         }
 
         base_t::dim = dim;
-        int M_max = min(dim / P, bit);
+        int M_max = max(min(dim / P, bit), 1);
         M = M_max;
+        CV_Assert(0 < M);
         partitioningDataspace_ICCV2013(baseInput);
 
         float*** subPrjData = new float**[M_max];

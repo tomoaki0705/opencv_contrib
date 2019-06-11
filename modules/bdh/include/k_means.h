@@ -53,9 +53,7 @@ public:
         , centroid(nullptr)
         , CONVERGENCE_RATE(1.0e-5)
         , CONVERGENCE_LOOP(UINT_MAX)
-    {
-        cout << "sizeof" << sizeof(data_t) << endl;
-    }
+    {}
 
 	/**
 	* @brief destructor

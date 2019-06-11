@@ -147,7 +147,7 @@ void linearCheck(const cv::Mat& reference1, const cv::Mat& reference2, const bdh
 
 TEST(BDH_Classification, Regression)
 {
-    const int kDimension = 6;
+    const int kDimension = 128;
     const int kLength = 500;
     Mat originalData = Mat(kLength, kDimension, CV_8U);
     RNG& rng = theRNG();
@@ -179,15 +179,6 @@ TEST(BDH_Classification, Regression)
             counter[classIndex]++;
             averageVector[classIndex] += convertedStub;
         }
-    }
-
-    for (int i = 0; i < originalData.rows; i++)
-    {
-        cv::bdh::point_t dummy;
-        Mat extractedStub = originalData.row(i);
-        int classIndex = bdh.NearestNeighbor(extractedStub, &dummy, searchParam, bdh::search_mode::NumPoints, 1, DBL_MAX);
-        cout << "No. " << i << " expected : " << classIndex << endl;
-        linearCheck(extractedStub, averageVector[classIndex], bdh);
     }
 
     unsigned int successCount = 0;
