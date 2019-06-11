@@ -670,11 +670,6 @@ namespace bdh {
             return hashTable.get_nEntry();
         }
 
-        double get_variance() const
-        {
-            return variance;
-        }
-
         bool loadTable(const String & path);
         bool saveTable(const String & path) const;
         bool loadParameters(const String & path);
