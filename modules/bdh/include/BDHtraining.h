@@ -437,14 +437,13 @@ namespace bdh {
             baseSet[m].k = 2;
         }
 
-        int percent;
         int tmp = 5;
         int loop = static_cast<int>(((bit - M) / bit_step));
         for (int i = 0; i < loop; ++i)
         {
             updateCentroid(bit_step, subPrjData, k_means);
 
-            percent = static_cast<int>(square((bit_step*i + M) / bit) * 100);
+            int percent = static_cast<int>(((bit_step*i + M) / bit) * 100.);
             if (percent >= tmp)
             {
                 cout << percent << "% done." << endl;
@@ -497,18 +496,14 @@ namespace bdh {
         int percent;
         int tmp = 5;
         int loop = static_cast<int>(bit / bit_step);
-        double previousSquare = 0.0;
-        double valueSquare = 0.0;
         double restBit = bit - bit_step*loop;
         for (int i = 0; i < loop; ++i)
         {
             updateCentroid(bit_step, subPrjData, k_means);
-            previousSquare = valueSquare;
-            valueSquare = square(bit_step*i / bit) * 100.;
-            percent = static_cast<int>(valueSquare);
+            percent = static_cast<int>((bit_step*i / bit) * 100.);
             if (percent >= tmp)
             {
-                cout << percent << "% done. " << previousSquare << ',' << valueSquare << endl;
+                cout << percent << "% done. " << endl;
                 tmp += 5;
             }
         }
@@ -566,19 +561,9 @@ namespace bdh {
         query_t* query
     )
     {
-
-        int NNidx = 0;
-        double NNdis = Distance(dim, sample[0], query);
-        double distance;
-        for (int n = 1; n < num; n++) {
-
-            distance = Distance(dim, sample[n], query, NNdis);
-            if (distance < NNdis) {
-                NNdis = distance;
-                NNidx = n;
-            }
-        }
-        return NNidx;
+        point_t NNpoint;
+        NearestNeighbor(dim, num, sample, query, NNpoint);
+        return NNpoint.index;
     }
 
     template<typename data_t, typename query_t>
@@ -592,11 +577,10 @@ namespace bdh {
     {
         NNpoint.index = 0;
         NNpoint.distance = Distance(dim, sample[0], query);
-        double distance;
         for (int n = 1; n < num; n++)
         {
 
-            distance = Distance(dim, sample[n], query);
+            double distance = Distance(dim, sample[n], query);
             if (distance < NNpoint.distance)
             {
                 NNpoint.distance = distance;

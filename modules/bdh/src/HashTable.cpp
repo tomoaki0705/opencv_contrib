@@ -174,11 +174,15 @@ namespace cv {
             }
 
             //realloc heap memory
-            table_p = static_cast<address_t>(
+            address_t newAddress_p = static_cast<address_t>(
                 realloc(table_p, collisionSize + entrySize*(collision + 1)));
-            if (!table_p)
+            if (!newAddress_p)
             {
                 return false;
+            }
+            else
+            {
+                table_p = newAddress_p;
             }
 
             hashTable[HashValue] = table_p;

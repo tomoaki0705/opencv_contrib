@@ -191,18 +191,14 @@ void superPCA::calculateCovarianceMatrix(
 #endif
 			for (int d = 0; d<_dim; d++)
 			{
-				double cov;
-				double mean_d2;
 				double mean_d = mean[d];
-				data_t** data_n;
-				data_t** data_n_End;
 				for (int d2 = d; d2<_dim; d2++)
 				{
-					mean_d2 = mean[d2];
-					cov = 0;
+                    double mean_d2 = mean[d2];
+					double cov = 0;
 
-					data_n_End = data + num;
-					for (data_n = data; data_n != data_n_End; ++data_n)
+                    data_t** data_n_End = data + num;
+					for (data_t** data_n = data; data_n != data_n_End; ++data_n)
 					{
 						cov += ((*data_n)[d] - mean_d)*((*data_n)[d2] - mean_d2);
 					}

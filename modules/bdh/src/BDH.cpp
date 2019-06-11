@@ -69,13 +69,12 @@ int Index::NearBucket_R(
 
     if (m_plus1 == M)
     {
-        size_t hashKey;
         index_t collision;
         node_t* node = layer[status.m].node;
         const double layerBound = Radius - status.dist;
         for (; node->distance <= layerBound; ++node)
         {
-            hashKey = status.hashKey + node->hashKey;
+            size_t hashKey = status.hashKey + node->hashKey;
 
             collision = hashTable.getCollision(hashKey);
 
@@ -126,7 +125,6 @@ int Index::NearBucket_C(
 
     if (m_plus1 == M)
     {
-        size_t hashKey;
         hashKey_t Key;
         address_t bucket_p;
 
@@ -136,7 +134,7 @@ int Index::NearBucket_C(
         for (; node->distance <= layerLowerBound; ++node) {}
         for (; node->distance <= layerUpperBound; ++node)
         {
-            hashKey = status.hashKey + node->hashKey;
+            size_t hashKey = status.hashKey + node->hashKey;
             bucket_p = hashTable.getPointer(hashKey);
             if (bucket_p)
             {
@@ -191,12 +189,11 @@ int Index::NearBucket_C_list(
     int i = (*itr)->nodeIdx;
     if (m_plus1 == M)
     {
-        size_t hashKey;
         index_t collision;
 
         for (; node[i].distance <= layerBound; ++i)
         {
-            hashKey = (*itr)->hashKey + node[i].hashKey;
+            size_t hashKey = (*itr)->hashKey + node[i].hashKey;
             collision = hashTable.getCollision(hashKey);
             if (collision > 0)
             {
@@ -647,8 +644,6 @@ bool Index::loadParameters(const String& path)
 
     Subspace::dim = dim;
 
-    subHashSizeMax = 0;
-
     for (int m = 0; m < M; ++m)
     {
         Subspace stubSpace;
@@ -656,11 +651,6 @@ bool Index::loadParameters(const String& path)
 
         ifs >> stubSpace.subHashSize
             >> stubSpace.variance;
-
-        if (stubSpace.subHashSize > subHashSizeMax)
-        {
-            subHashSizeMax = stubSpace.subHashSize;
-        }
 
         for (int sd = 0; sd < P; ++sd)
         {

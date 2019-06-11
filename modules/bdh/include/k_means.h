@@ -115,11 +115,6 @@ private:
 		double* MinDisTable
 		);
 
-	double CalCentScala(
-		int num, 
-		data_t* point
-		);
-
 	double CalCent(
 		int num,
 		data_t** point
@@ -361,67 +356,6 @@ void K_Means<data_t, centroid_t>::updateMinDisTable(centroid_t* _centroid, int n
 		}
 	}
 
-}
-
-template<typename data_t, typename centroid_t>
-double K_Means<data_t, centroid_t>::CalCentScala(
-	int num, 
-	data_t* point)
-{
-	int loop = 0;
-	int* nCP = new int[K];
-	centroid_t* centroid2 = new centroid_t[K];
-	for (int c = 0; c < K; c++)
-	{
-		centroid2[c] = 0;
-		nCP[c] = 0;
-	}
-
-	error = DBL_MAX;
-	double error0 = 0.0;
-
-	while (error0 != error)
-	{
-
-		loop++;
-		error0 = error;
-		error = 0;
-
-		//calculate new centroid
-		for (int n = 0; n < num; n++)
-		{
-
-			int index = 0;
-			double dist;
-			double terror = fabs(point[n] - centroid[0]);
-			for (int i = 1; i < K; ++i)
-			{
-				dist = fabs(point[n] - centroid[i]);
-				if (dist < terror)
-				{
-					terror = dist;
-				}
-			}
-
-			error += terror;
-			centroid2[index] += point[n];
-			nCP[index]++;
-		}
-
-		error /= num;
-		for (int c = 0; c < K; c++){
-			centroid[c] = centroid2[c] / nCP[c];
-			centroid2[c] = 0;
-			nCP[c] = 0;
-		}
-		if (error <= 1.0e-5){
-			break;
-		}
-	}
-
-	delete[] centroid2;
-
-	return error;
 }
 
 template<typename data_t, typename centroid_t>

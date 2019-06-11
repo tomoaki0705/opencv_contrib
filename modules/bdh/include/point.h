@@ -40,28 +40,6 @@ struct point_t
 	{}
 
 	/**
-	* @brief constructor
-	*/
-	point_t(
-		const size_t& _index,	//!< [in] the index of point 
-		const double& _distance	//!< [in] the distance from query
-		)
-		: index(_index)
-		, distance(_distance)
-	{}
-
-	/**
-	* @brief constructor
-	*/
-	point_t(
-		const size_t& _index,	//!< [in] the index of point 
-		data_t* _addressOfpoint	//!< [in] the address of point
-		)
-		: index(_index)
-		, addressOfpoint(_addressOfpoint)
-	{}
-
-	/**
 	* @brief set member variables
 	*/
 	void setMemberVariable(

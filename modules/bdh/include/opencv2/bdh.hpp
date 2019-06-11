@@ -120,27 +120,16 @@ namespace bdh {
         * @brief constructor
         */
         status_t(
-            const int& _m,           //!< index of layer
-            const int& _nodeIdx,     //!< index of nodes
-            const size_t& _hashKey,  //!< hash value
-            const double& _dist)     //!< distance
+            const int _m,                //!< index of layer
+            const int _nodeIdx    = 0,   //!< index of nodes
+            const size_t _hashKey = 0,   //!< hash value
+            const double _dist    = 0.0) //!< distance
             : m(_m)
             , nodeIdx(_nodeIdx)
             , dist(_dist)
             , hashKey(_hashKey)
         {}
     
-        /**
-        * @brief constructor
-        */
-        status_t(
-            const int& _m            //!< index of layer
-            )
-            : m(_m)
-            , nodeIdx(0)
-            , dist(0.0)
-            , hashKey(0)
-        {}
     };
     
     /**
@@ -201,15 +190,6 @@ namespace bdh {
         )
             : index(_index)
             , distance(_distance)
-        {}
-
-        /**
-        * @brief constructor
-        */
-        point_t(
-            const size_t& _index     //!< [in] the index of point 
-        )
-            : index(_index)
         {}
 
         /**
@@ -283,6 +263,7 @@ namespace bdh {
         HashTable(size_t _entrySize, size_t _hashSize)
             : entrySize(_entrySize)
             , hashSize(_hashSize)
+            , nEntry(0)
         {
             initialize(entrySize, hashSize);
         }
@@ -627,7 +608,6 @@ namespace bdh {
         int P;              //!< dimension of subspace
         int bit;            //!< bits num of hash table
         double delta;       //!< increment step of search radius for C search
-        int subHashSizeMax; //!< max of sub hash size
         size_t pointSize;   //!< number of data points
         size_t entrySize;   //!< size of entry = sum of size of index and data point
         size_t hashSize;    //!< hash size = 2^bit

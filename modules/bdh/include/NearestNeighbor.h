@@ -89,10 +89,9 @@ int NearestNeighbor(
 
 	int NNidx = 0;
 	double NNdis = Distance(dim, sample[0], query);
-	double distance;
 	for (int n = 1; n < num; n++){
 
-		distance = Distance(dim, sample[n], query);
+        double distance = Distance(dim, sample[n], query);
 		if (distance < NNdis){
 			NNdis = distance;
 			NNidx = n;
@@ -112,10 +111,9 @@ int NearestNeighbor(
 
     int NNidx = 0;
     double NNdis = Distance(dim, sample[0], query);
-    double distance;
     for (int n = 1; n < num; n++) {
 
-        distance = Distance(dim, sample[n], query);
+        double distance = Distance(dim, sample[n], query);
         if (distance < NNdis) {
             NNdis = distance;
             NNidx = n;
@@ -135,11 +133,10 @@ void NearestNeighbor(
 {
 	NNpoint.index = 0;
 	NNpoint.distance = Distance(dim, sample[0], query);
-	double distance;
 	for (int n = 1; n < num; n++)
 	{
 
-		distance = Distance(dim, sample[n], query);
+        double distance = Distance(dim, sample[n], query);
 		if (distance < NNpoint.distance)
 		{
 			NNpoint.distance = distance;
