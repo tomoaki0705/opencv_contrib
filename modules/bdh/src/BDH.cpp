@@ -408,7 +408,7 @@ bool readBinary(const String &path, unsigned &dim, unsigned &num, OutputArray da
 }
 
 template <typename data_t>
-void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t * const base, int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, HashTable &hashTable, double &delta, std::vector<Subspace> &subspace, Subspace& lestspace, double bit_step = 1.0, double sampling_rate = 1.0)
+void parameterTuning(int dim, index_t num, data_t ** const data, base_t * const base, int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, HashTable &hashTable, double &delta, std::vector<Subspace> &subspace, Subspace& lestspace, double bit_step = 1.0, double sampling_rate = 1.0)
 {
     hashSize = (size_t(1) << bit);//hash size is 2^bit
     Subspace::dim = dim;
@@ -538,7 +538,7 @@ void Index::Build(InputArray data, PCA::Flags order)
         memcpy(convertData[n], (featureElement*)originalData.data + n * originalData.step, sizeof(featureElement) * dim);
     }
 
-    parameterTuning_ICCV2013(dim, length, convertData, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1, 1.0);
+    parameterTuning(dim, length, convertData, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1, 1.0);
 
     //delete base
     if (base != NULL)
