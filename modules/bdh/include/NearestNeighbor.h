@@ -8,7 +8,6 @@
 #ifndef __NEAREST_NEIGHBOR__
 #define __NEAREST_NEIGHBOR__
 
-#include "define.h"
 #include "point.h"
 #include <vector>
 

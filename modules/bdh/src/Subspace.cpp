@@ -1,4 +1,6 @@
 
+#include "baseset.h"
+#include <opencv2/bdh.hpp>
 #include <Subspace.h>
 #include <NearestNeighbor.h>
 #include <k_means.h>

@@ -631,7 +631,6 @@ namespace bdh {
         size_t pointSize;   //!< number of data points
         size_t entrySize;   //!< size of entry = sum of size of index and data point
         size_t hashSize;    //!< hash size = 2^bit
-        double variance;
         Mat originalData;   //!< store the original feature data
 
         std::vector<Subspace> subspace;//!< classes handling parameters of subspace

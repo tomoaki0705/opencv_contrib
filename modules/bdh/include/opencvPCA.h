@@ -25,7 +25,7 @@ class PrincipalComponentAnalysis : public superPCA
 {
 
 public:
-	//コンストラクタ
+	// constructor
 	PrincipalComponentAnalysis()
 		: superPCA()
 	{}
@@ -50,10 +50,10 @@ void PrincipalComponentAnalysis::executePCA(
 	size_t num, 
 	data_t** data)
 {
-	//次元数変わったらメモリ確保しなおし
+	// reallocate the memory when dimension changed
 	resetDimension(_dim);
 
-	//各基底の平均と分散共分散行列を得る
+	// calculate the mean and covariance matrix of each eigen vector
 #ifdef SHOW_PROGRESS
 	cout << "calclate covariance matrix" << endl;
 	double timeStart = GetCPUTime();

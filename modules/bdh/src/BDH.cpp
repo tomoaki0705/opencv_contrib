@@ -43,7 +43,7 @@ void Index::setLayerParam(layer_t * layer, InputArray _query) const
     }
     std::sort(layer, layer + M);
 
-    //m番目の部分空間からの残り距離の最大と最小を計算
+    // compute the maximum and minimum distance to the remaining subspace from m-th subspace
     double distRestMin = 0;
     double distRestMax = 0;
     layer_p_end = layer - 1;
@@ -57,9 +57,9 @@ void Index::setLayerParam(layer_t * layer, InputArray _query) const
 
 
 int Index::NearBucket_R(
-    const double Radius,//探索半径
-    layer_t* const layer,//クエリから求めたレイヤごとの部分距離情報
-    const status_t& status,//ノードの状態を表す
+    const double Radius,          // search radius
+    layer_t* const layer,         // subspace distance from query to each layer
+    const status_t& status,       // express the status of node
     vector<hashKey_t>& bucketList //![out] collect hash key of buckets near than Radius from query
 )const
 {
@@ -113,9 +113,9 @@ int Index::NearBucket_R(
 
 
 int Index::NearBucket_C(
-    const double& Lbound,//探索下限
-    const double& Ubound,//探索上限
-    layer_t* const layer,//クエリから求めたレイヤごとの部分距離情報
+    const double& Lbound, // lower boundary of search space
+    const double& Ubound, // upper boundary of search space
+    layer_t* const layer, // subspace distance from query to each layer
     const status_t& status,
     vector<hashKey_t>& bucketList
 ) const
@@ -174,10 +174,10 @@ int Index::NearBucket_C(
 
 
 int Index::NearBucket_C_list(
-    const double Rbound,//探索半径
-    layer_t* const layer,//クエリから求めたレイヤごとの部分距離情報
-    std::list<status_t>& statusQue,//探索途中のノードを保持
-    std::list<status_t>::iterator* itr, //ノードの状態を表す
+    const double Rbound,                // search space radius
+    layer_t* const layer,               // subspace distance from query to each layer
+    std::list<status_t>& statusQue,     // status of node while searching
+    std::list<status_t>::iterator* itr, // status of current node
     std::vector<hashKey_t>& bucketList
 ) const
 {
@@ -226,15 +226,15 @@ int Index::NearBucket_C_list(
         }
     }
 
-    //すべてのノードにアクセスしたか
+    // was all node accessed ?
     if (i == layer[m].k)
     {
-        //ノードを消して次へ
+        // remove the current node and move to the next node
         statusQue.erase((*itr)++);
     }
     else
     {
-        //ノードの状態を更新して次へ
+        // update the status of current node and move to the next node
         (*itr)->nodeIdx = i;
         ++(*itr);
     }
@@ -311,24 +311,25 @@ int Index::searchInBucket(
 ///////////// Search Function ////////////////////////
 void Index::linearSearchInNNcandidates(InputArray _query, point_t * point, int K, double epsilon, std::vector<hashKey_t>& bucketList) const
 {
-    //生成されたハッシュキーを元にバケットを参照して最近傍点を探索 start//
+    // search the nearest point from bucket based on generated hash key start//
+    // priority queue to hold the nearest point
     priority_queue<point_t> NNpointQue;
-    //最近傍点保持用のヒープ木を初期化
+    // initialize the priority queue
     for (int i = 0; i < K; ++i)
     {
         NNpointQue.push(point_t(ULLONG_MAX, epsilon));
     }
 
-    //見つけてきたハッシュキーを参照して最近傍点を探索する
+    // search the nearest point using the hash key
     vector<hashKey_t>::iterator keyList_itr = bucketList.begin();
     vector<hashKey_t>::iterator keyList_itr_end = bucketList.end();
     for (; keyList_itr != keyList_itr_end; ++keyList_itr)
     {
         searchInBucket(_query, (*keyList_itr).hashKey, NNpointQue);
     }
-    //生成されたハッシュキーを元にバケットを参照して最近傍点を探索 end//
+    // search the nearest point from bucket based on generated hash key end//
 
-    //優先度付きキュー内の最近傍点を返却用引数にコピー
+    // copy the nearest point from the priority queue
     for (int i = K - 1; i >= 0; --i)
     {
         point[i] = NNpointQue.top();
@@ -410,7 +411,7 @@ bool readBinary(const String &path, unsigned &dim, unsigned &num, OutputArray da
 }
 
 template <typename data_t>
-void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t * const base, int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, double &variance, HashTable &hashTable, double &delta, std::vector<Subspace> &subspace, Subspace& lestspace, double bit_step = 1.0, double sampling_rate = 1.0)
+void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t * const base, int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, HashTable &hashTable, double &delta, std::vector<Subspace> &subspace, Subspace& lestspace, double bit_step = 1.0, double sampling_rate = 1.0)
 {
     hashSize = (size_t(1) << bit);//hash size is 2^bit
     Subspace::dim = dim;
@@ -418,7 +419,7 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
     pointSize = sizeof(featureElement)*dim;//byte size of a point's value
     entrySize = pointSize + sizeof(index_t);//byte size to entry a point into hash table
 
-    variance = 0;
+    double variance = 0;
     for (int d = 0; d < dim; ++d)
     {
         variance += base[d].variance;   // pca.eigenvalues
@@ -526,7 +527,7 @@ void Index::Build(InputArray data, PCA::Flags order)
         memcpy(convertData[n], (featureElement*)originalData.data + n * originalData.step, sizeof(featureElement) * dim);
     }
 
-    parameterTuning_ICCV2013(dim, length, convertData, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace, 0.1, 1.0);
+    parameterTuning_ICCV2013(dim, length, convertData, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1, 1.0);
 
     //delete base
     if (base != NULL)
@@ -588,7 +589,7 @@ void Index::Build(int _dim, unsigned num, void** data)
 
     cout << "training Start ." << endl;
     // train parameters
-    parameterTuning_ICCV2013(dim, num, data, base, P, 13, M, hashSize, pointSize, entrySize, variance, hashTable, delta, subspace, lestspace, 0.1, 1.0);
+    parameterTuning_ICCV2013(dim, num, data, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1, 1.0);
 
     //delete base
     for (int d = 0; d < dim; ++d)
@@ -642,8 +643,7 @@ bool Index::loadParameters(const String& path)
         >> delta
         >> pointSize
         >> entrySize
-        >> hashSize
-        >> variance;
+        >> hashSize;
 
     Subspace::dim = dim;
 
@@ -742,8 +742,7 @@ bool Index::saveParameters(const String& path) const
         << delta << "\t"
         << pointSize << "\t"
         << entrySize << "\t"
-        << hashSize << "\t"
-        << variance << endl;
+        << hashSize << endl;
 
     for (int m = 0; m < M; ++m)
     {
@@ -907,7 +906,8 @@ int Index::getBucketList(
 {
     Mat query = _query.getMat();
 
-    //部分距離を計算し，優先度の高い順にソート
+    // compute the subspace distance and sort based on the priority
+    CV_Assert(0 < M);
     layer_t* layer = new layer_t[M];
     for (int m = 0; m < M; ++m)
     {
@@ -922,14 +922,13 @@ int Index::getBucketList(
     {
     case Radius:
     {
-        //ハッシュに使っていない基底における重心からの距離を求める
-        //NumPointsアルゴリズムの場合、バケットの選択に影響しない計算。
-        //頂点数に対して次元数が大きいほど、冗長になる
+        // compute the distance from the centroid of each eigen vector
+        // this computation becomes trivial if the number of dimension gets bigger compared to number of the node
         double* lestSpaceVal = new double[lestspace.dim];
         lestspace.getPCAdata(query, lestSpaceVal);
         delete[] lestSpaceVal;
 
-        //Radius以下の距離を探索
+        // search distance smaller than radius
         NNC = NearBucket_R(searchParam, layer, status, bucketList);
 
         break;
@@ -955,9 +954,9 @@ int Index::getBucketList(
         unsigned C = static_cast<unsigned>(searchParam);
         bucketList.reserve(C);
 
-        //前回の探索で打ち切られたルートを再探索
+        // resume the cut-offed search
         list<status_t> statusQue;
-        statusQue.push_front(status);//ルートノード
+        statusQue.push_front(status);// root node
         list<status_t>::iterator itr;
         for (double Rbound = layer[0].restMin + 1.0e-10
             ; NNC < C
@@ -974,7 +973,7 @@ int Index::getBucketList(
     }
     }
 
-    //探索が終わったのでデリート
+    // clean up
     for (int m = 0; m < M; ++m)
     {
         delete[] layer[m].node;

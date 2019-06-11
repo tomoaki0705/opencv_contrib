@@ -56,15 +56,15 @@ bool superPCA::loadPCA(
     return true;
 }
 
-//ŸŒ³”•Ï‚í‚Á‚½‚çƒƒ‚ƒŠŠm•Û‚µ‚È‚¨‚µ
+// reallocate the memory when dimension changed
 void superPCA::resetDimension(int _dim)
 {
     if (dim != _dim)
     {
-        //ƒƒ‚ƒŠ‰ğ•ú
+        // release the memory
         this->~superPCA();
 
-        //ƒƒ‚ƒŠ‰Šú‰»
+        // initialize the memory
         dim = _dim;
         pcDir = new PC_t[dim];
         
