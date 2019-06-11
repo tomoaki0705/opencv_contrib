@@ -635,9 +635,8 @@ namespace bdh {
             , hashTable()
         {}
 
-        Index(int _dim, unsigned num, void** data);
+        Index(InputArray data, enum PCA::Flags order = PCA::DATA_AS_ROW);
 
-        void Build(int _dim, unsigned num, void** data);
         void Build(InputArray data, enum PCA::Flags order = PCA::DATA_AS_ROW);
 
         ~Index()

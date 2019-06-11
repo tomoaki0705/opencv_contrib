@@ -496,6 +496,20 @@ void parameterTuning_ICCV2013(int dim, index_t num, data_t ** const data, base_t
 
 }
 
+Index::Index(InputArray data, PCA::Flags order)
+    : dim(0)
+    , M(0)
+    , P(10)
+    , bit(0)
+    , delta(0.0)
+    , pointSize(0)
+    , entrySize(0)
+    , hashSize(0)
+    , hashTable()
+{
+    Build(data, order);
+}
+
 void Index::Build(InputArray data, PCA::Flags order)
 {
     cv::Mat _data = data.getMat();
@@ -557,61 +571,6 @@ void Index::Build(InputArray data, PCA::Flags order)
         delete[] convertData;
         convertData = NULL;
     }
-}
-
-void Index::Build(int _dim, unsigned num, void** data)
-{
-    dim = _dim;
-    //Principal Component Analysis
-    cout << "calculate PCA ." << endl;
-    PrincipalComponentAnalysis pca;
-
-    pca.executePCA(dim, num, (featureElement**)data);
-    originalData = Mat(num, dim, CV_8UC1);
-    for (size_t y = 0; y < num; y++)
-    {
-        memcpy(originalData.data + y * originalData.step, (featureElement*)(data[y]), sizeof(featureElement) * dim);
-    }
-
-    // copy PCA direction to base_t for BDH
-    const PC_t* pcDir = pca.getPCdir();
-    base_t* base = new base_t[dim];
-    for (int d = 0; d < dim; ++d)
-    {
-        base[d].mean = pcDir[d].mean;           // pca.mean
-        base[d].variance = pcDir[d].variance;   // pca.eigenvalues
-        base[d].direction = new double[dim];    // pca.eigenvectors
-        memcpy(base[d].direction, pcDir[d].direction, sizeof(double)*dim);
-    }
-
-    cout << "training Start ." << endl;
-    // train parameters
-    parameterTuning_ICCV2013(dim, num, data, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1, 1.0);
-
-    //delete base
-    for (int d = 0; d < dim; ++d)
-    {
-        delete[] base[d].direction;
-    }
-    delete[] base;
-
-    // entory data points into hash table
-    storePoint();
-}
-
-
-Index::Index(int _dim, unsigned num, void** data)
-    : dim(_dim)
-    , M(0)
-    , P(10)
-    , bit(0)
-    , delta(0.0)
-    , pointSize(0)
-    , entrySize(0)
-    , hashSize(0)
-    , hashTable()
-{
-    Build(dim, num, data);
 }
 
 bool Index::loadTable(const String & path)
@@ -849,13 +808,13 @@ void Subspace::getPCAdata(const Mat &data, double* PCAdata) const
     int i = 0;
     switch (data.depth())
     {
-    case CV_8U:  INNER_PRODUCT(i, PCAdata, baseVector, data, unsigned char); break;
-    case CV_8S:  INNER_PRODUCT(i, PCAdata, baseVector, data, char); break;
+    case CV_8U:  INNER_PRODUCT(i, PCAdata, baseVector, data, unsigned char ); break;
+    case CV_8S:  INNER_PRODUCT(i, PCAdata, baseVector, data, char          ); break;
     case CV_16U: INNER_PRODUCT(i, PCAdata, baseVector, data, unsigned short); break;
-    case CV_16S: INNER_PRODUCT(i, PCAdata, baseVector, data, short); break;
-    case CV_32S: INNER_PRODUCT(i, PCAdata, baseVector, data, int); break;
-    case CV_32F: INNER_PRODUCT(i, PCAdata, baseVector, data, float); break;
-    case CV_64F: INNER_PRODUCT(i, PCAdata, baseVector, data, double); break;
+    case CV_16S: INNER_PRODUCT(i, PCAdata, baseVector, data, short         ); break;
+    case CV_32S: INNER_PRODUCT(i, PCAdata, baseVector, data, int           ); break;
+    case CV_32F: INNER_PRODUCT(i, PCAdata, baseVector, data, float         ); break;
+    case CV_64F: INNER_PRODUCT(i, PCAdata, baseVector, data, double        ); break;
     default:
         CV_Error(Error::StsUnsupportedFormat, "unsupported type");
         break;
