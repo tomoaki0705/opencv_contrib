@@ -10,7 +10,6 @@
 */
 namespace cv {
 namespace bdh {
-    typedef unsigned char featureElement;
     /////////////// Load Function ////////////////////////
     /**
     * @brief read point set

@@ -24,19 +24,19 @@ namespace bdh {
     class BDHtraining
     {
         //for data sample
-        int dim;	//!< dimension of dataspace
-        unsigned num;	//!< number of data samples
+        int dim;      //!< dimension of dataspace
+        unsigned num; //!< number of data samples
 
                         //parameters
-        int M;	//!< number of subspace
-        int P;	//!< dimension of subspace
-        int U;	//!< numer of base used for hashing = P*M
-        int bit;//!< bits num of hash table
+        int M;   //!< number of subspace
+        int P;   //!< dimension of subspace
+        int U;   //!< numer of base used for hashing = P*M
+        int bit; //!< bits num of hash table
 
-                //result values
-        size_t hashSize;	//!< hash size
-        baseset_t* baseSet;	//!< baseSet[M]
-        baseset_t lestSet;	//!< baseSet not used for hashing
+        //result values
+        size_t hashSize;    //!< hash size
+        baseset_t* baseSet; //!< baseSet[M]
+        baseset_t lestSet;  //!< baseSet not used for hashing
 
     public:
 
@@ -81,27 +81,13 @@ namespace bdh {
         * @brief training BDH parameters
         */
         void training(
-            int _dim,						//!< [in] dimension
-            unsigned _num,						//!< [in] number of sample
-            data_t** data,					//!< [in] sample data set
-            const base_t* const baseInput,	//!< [in] base
-            int _M,							//!< [in] number of subspace
-            int _P,							//!< [in] dimension of subspace
-            int _bit,						//!< [in] bits num of hash table
-            double bit_step = 1.0			//!< [in] training parameter.
-        );
-
-        /**
-        * @brief training BDH parameters
-        */
-        void training_ICCV2013(
-            int _dim,						//!< [in] dimension
-            unsigned _num,					//!< [in] number of sample
-            data_t** data,					//!< [in] sample data set
-            const base_t* const baseInput,	//!< [in] base
-            int _P,							//!< [in] number of subspace
-            int _bit,						//!< [in] bits num of hash table
-            double bit_step = 1.0			//!< [in] training parameter.
+            int _dim,                      //!< [in] dimension
+            unsigned _num,                 //!< [in] number of sample
+            const cv::Mat& data,           //!< [in] sample data set
+            const base_t* const baseInput, //!< [in] base
+            int _P,                        //!< [in] number of subspace
+            int _bit,                      //!< [in] bits num of hash table
+            double bit_step = 1.0          //!< [in] training parameter.
         );
 
         /**
@@ -137,14 +123,6 @@ namespace bdh {
             const base_t* const base
         );
 
-        /**
-        *上位の基底セットに上位の主成分をまとめて登録する
-        *
-        */
-        void partitioningDataspace_ICCV2013(
-            const base_t* const base
-        );
-
 
         //各部分空間のセントロイドを求める
         //セントロイドの数は自動的に求められる
@@ -170,35 +148,34 @@ namespace bdh {
             float*** subPrjData
         );
 
-        //内積
-        double innerProduct(const double* base, const data_t* data) {
-            double val = 0.0;
-            for (int d = 0; d < dim; ++d) {
-                val += base[d] * data[d];
-            }
-            return val;
-        }
-
-
     };
     int base_t::dim;
 
+    template<typename data_t>
+    double innerProduct(const double* base, const data_t* data, int dim)
+    {
+        double val = 0.0;
+        for (int d = 0; d < dim; ++d)
+        {
+            val += base[d] * data[d];
+        }
+        return val;
+    }
+
     template <typename data_t>
-    void BDHtraining<data_t>::training_ICCV2013(
+    void BDHtraining<data_t>::training(
         int _dim,
         unsigned _num,
-        data_t** data,
+        const cv::Mat& data,
         const base_t* const baseInput,
         int _P,
         int _bit,
         double bit_step)
     {
-        //delete BDHtraining();
-
-        this->dim = _dim;
-        this->num = _num;
-        this->P = _P;
-        this->bit = _bit;
+        dim = _dim;
+        num = _num;
+        P = _P;
+        bit = _bit;
 
         if (bit_step <= 0.0)
         {
@@ -209,7 +186,7 @@ namespace bdh {
         int M_max = max(min(dim / P, bit), 1);
         M = M_max;
         CV_Assert(0 < M);
-        partitioningDataspace_ICCV2013(baseInput);
+        partitioningDataspace(baseInput);
 
         float*** subPrjData = new float**[M_max];
         for (int d, m = 0; m < M_max; ++m)
@@ -225,7 +202,7 @@ namespace bdh {
                     // pca.eigenvectors
                     subPrjData[m][n][d]
                         = static_cast<float>(
-                            innerProduct(baseSet[m].base[d].direction, data[n])
+                            innerProduct<data_t>(baseSet[m].base[d].direction, (data_t*)data.row(d).data, data.cols)
                             );
                 }
             }
@@ -261,129 +238,7 @@ namespace bdh {
 
 
     template <typename data_t>
-    void BDHtraining<data_t>::training(
-        int _dim,
-        unsigned _num,
-        data_t** data,
-        const base_t* const baseInput,
-        int _M,
-        int _P,
-        int _bit,
-        double bit_step)
-    {
-        //delete BDHtraining();
-
-        dim = _dim;
-        num = _num;
-        M = _M;
-        P = _P;
-        U = M*P;
-        bit = _bit;
-
-        if (bit < M)
-        {
-            this->M = bit;
-        }
-
-        if (bit_step <= 0.0)
-        {
-            bit_step = 0.1;
-        }
-
-        base_t::dim = dim;
-        partitioningDataspace(baseInput);
-
-        float*** subPrjData = new float**[M];
-        for (int d, m = 0; m < M; ++m)
-        {
-            subPrjData[m] = new float*[num];
-
-            for (unsigned n = 0; n < num; ++n)
-            {
-                subPrjData[m][n] = new float[P];
-
-                for (d = 0; d < P; ++d)
-                {
-                    subPrjData[m][n][d]
-                        = static_cast<float>(
-                            innerProduct(baseSet[m].base[d].direction, data[n])
-                            );
-                }
-            }
-        }
-
-        calclateCentroid(subPrjData, bit_step);
-
-        calculateCellVariance(subPrjData);
-
-        for (int m = 0; m < M; m++)
-        {
-            for (unsigned n = 0; n < num; n++)
-            {
-                delete[] subPrjData[m][n];
-            }
-            delete[] subPrjData[m];
-        }
-        delete[] subPrjData;
-
-        lestSet.subDim = dim - U;
-        lestSet.base = new base_t[lestSet.subDim];
-        lestSet.variance = 0;
-        for (int d = 0; d < lestSet.subDim; ++d) {
-
-            lestSet.base[d] = baseInput[U + d];
-
-            lestSet.base[d].direction = new double[dim];
-            memcpy(lestSet.base[d].direction, baseInput[U + d].direction, sizeof(double)*dim);
-
-            lestSet.variance += baseInput[U + d].variance;
-        }
-    }
-
-    template <typename data_t>
     void BDHtraining<data_t>::partitioningDataspace(
-        const base_t* const base)
-    {
-
-        baseSet = new baseset_t[M];
-        for (int m = 0; m < M; ++m)
-        {
-            baseSet[m].variance = 0;
-            baseSet[m].subDim = 0;
-            baseSet[m].base = new base_t[P];
-        }
-
-        for (int d = 0; d < U; ++d)
-        {
-            int target = 0;
-            for (int m = 1; m < M; ++m)
-            {
-                if ((baseSet[target].subDim == P) ||
-                    (baseSet[m].variance < baseSet[target].variance && baseSet[m].subDim < P))
-                {
-                    target = m;
-                    continue;
-                }
-            }
-
-            baseSet[target].variance += base[d].variance;
-            baseSet[target].base[baseSet[target].subDim] = base[d];
-            baseSet[target].base[baseSet[target].subDim].direction = new double[dim];
-
-            memcpy(
-                baseSet[target].base[baseSet[target].subDim].direction,
-                base[d].direction,
-                sizeof(double)*dim
-            );
-
-            ++baseSet[target].subDim;
-        }
-
-        std::sort(baseSet, baseSet + M);
-    }
-
-    template <typename data_t>
-    void BDHtraining<data_t>::partitioningDataspace_ICCV2013(
         const base_t* const base)
     {
 

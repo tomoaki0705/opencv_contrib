@@ -1,7 +1,7 @@
 /**
-* @file		HashTable.h
-* @author	Tomokazu Sato
-* @date		2015/05/05
+* @file     HashTable.h
+* @author   Tomokazu Sato
+* @date     2015/05/05
 */
 
 #ifndef __HashTable__
@@ -16,7 +16,7 @@
 namespace cv {
     namespace bdh {
         typedef unsigned collision_t;//!< type of collision
-        typedef char* address_t;	 //!< type of address
+        typedef char* address_t;     //!< type of address
 
     }
 }

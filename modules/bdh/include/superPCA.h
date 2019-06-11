@@ -16,15 +16,15 @@ using namespace std;
 * @brief handle eigen vector and correlation information
 */
 struct PC_t{
-	int		dim;	  //!< dimension
-	double  mean;	  //!< mean at base direction
-	double  variance; //!< variance at base direction = eigen value
-	double* direction;//!< eign vector
+    int  dim;         //!< dimension
+    double  mean;     //!< mean at base direction
+    double  variance; //!< variance at base direction = eigen value
+    double* direction;//!< eign vector
 
-	bool operator < (const PC_t& obj)
-	{
-		return this->variance > obj.variance;
-	}
+    bool operator < (const PC_t& obj)
+    {
+        return this->variance > obj.variance;
+    }
 };
 
 /**
@@ -33,32 +33,32 @@ struct PC_t{
 class superPCA
 {
 protected:
-	int dim;
-	int ZeroCount;
-	PC_t* pcDir;
+    int dim;
+    int ZeroCount;
+    PC_t* pcDir;
 
 public:
 
-	//コンストラクタ
-	superPCA()
-		: dim(0)
-		, ZeroCount(0)
-		, pcDir(nullptr)
-	{}
+    //コンストラクタ
+    superPCA()
+        : dim(0)
+        , ZeroCount(0)
+        , pcDir(nullptr)
+    {}
 
-	//デストラクタ
-	virtual ~superPCA()
-	{
-		if (pcDir != nullptr)
-		{
-			for (int d = 0; d < dim; ++d)
-			{
-				delete[] pcDir[d].direction;
-			}
-			delete[] pcDir;
-			pcDir = nullptr;
-		}
-	}
+    //デストラクタ
+    virtual ~superPCA()
+    {
+        if (pcDir != nullptr)
+        {
+            for (int d = 0; d < dim; ++d)
+            {
+                delete[] pcDir[d].direction;
+            }
+            delete[] pcDir;
+            pcDir = nullptr;
+        }
+    }
 
     /*
     * @brief dimension getter
@@ -68,64 +68,64 @@ public:
         return dim;
     }
 
-	/**
-	* @brief pcDir getter
-	* @return pcDir
-	*/
-	const PC_t* getPCdir()const
-	{
-		return pcDir;
-	}
+    /**
+    * @brief pcDir getter
+    * @return pcDir
+    */
+    const PC_t* getPCdir()const
+    {
+        return pcDir;
+    }
 
-	/**
-	* @brief project src vector to ret vector
-	*/
-	template<typename srcType, typename retType>
-	void projectToPCspace(
-		srcType* src,
-		retType* ret
-		);
+    /**
+    * @brief project src vector to ret vector
+    */
+    template<typename srcType, typename retType>
+    void projectToPCspace(
+        srcType* src,
+        retType* ret
+        );
 
-	/**
-	* @brief save result of PCA
-	*/
-	bool savePCA(
-		const string& path
-		);
+    /**
+    * @brief save result of PCA
+    */
+    bool savePCA(
+        const string& path
+        );
 
-	/**
-	* @brief load result of PCA
-	*/
-	bool loadPCA(
-		const string& path
-		);
+    /**
+    * @brief load result of PCA
+    */
+    bool loadPCA(
+        const string& path
+        );
 
 protected:
 
-	template<typename data_t>
-	double innerProduct(
-		int dim,
-		data_t* data,
-		double* dir
-		);
+    template<typename data_t>
+    double innerProduct(
+        int dim,
+        data_t* data,
+        double* dir
+        );
 
-	/**
-	* @brief realloc memory if dimension is changed
-	*/
-	void resetDimension(int dim);
+    /**
+    * @brief realloc memory if dimension is changed
+    */
+    void resetDimension(int dim);
 
-	/**
-	*/
+    /**
+    */
 
-	template<typename data_t>
-	void calculateCovarianceMatrix(
-		int dim, size_t num, data_t** data,
-		double* mean, double** covariance);
+    template<typename data_t>
+    void calculateCovarianceMatrix(
+        int dim, size_t num, data_t** data,
+        double* mean, double** covariance);
 
-	template<typename data_t>
-	void calculateCoefficientMatrix(
-		int dim, size_t num, data_t** data,
-		double* mean, double** coefficient);
+    template<typename data_t>
+    void calculateCoefficientMatrix(
+        int dim, size_t num, data_t** data,
+        double* mean, double** coefficient);
 };
 
 /**
@@ -133,17 +133,17 @@ protected:
 */
 template<typename data_t>
 double superPCA::innerProduct(
-	int _dim,
-	data_t* data,
-	double* dir
-	)
+    int _dim,
+    data_t* data,
+    double* dir
+    )
 {
-	double val = 0.0;
-	for (int d = 0; d < _dim; ++d)
-	{
-		val += data[d] * dir[d];
-	}
-	return val;
+    double val = 0.0;
+    for (int d = 0; d < _dim; ++d)
+    {
+        val += data[d] * dir[d];
+    }
+    return val;
 }
 
 /**
@@ -151,114 +151,114 @@ double superPCA::innerProduct(
 */
 template<typename srcType, typename retType>
 void superPCA::projectToPCspace(
-	srcType* src,
-	retType* ret
-	)
+    srcType* src,
+    retType* ret
+    )
 {
-	for (int d = 0; d < dim; ++d)
-	{
-		ret[d] = static_cast<retType>(innerProduct(dim, src, pcDir[d].direction));
-	}
+    for (int d = 0; d < dim; ++d)
+    {
+        ret[d] = static_cast<retType>(innerProduct(dim, src, pcDir[d].direction));
+    }
 }
 
 template<typename data_t>
 void superPCA::calculateCovarianceMatrix(
-	int _dim, size_t num, data_t** data,
-	double* mean, double** covariance)
+    int _dim, size_t num, data_t** data,
+    double* mean, double** covariance)
 {
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-		{
-			/* calculate Mean */
+        {
+            /* calculate Mean */
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-			for (int d = 0; d < _dim; d++)
-			{
-				mean[d] = 0;
-				for (unsigned n = 0; n < num; n++)
-				{
-					mean[d] += data[n][d];
-				}
-				mean[d] /= num;
-			}
+            for (int d = 0; d < _dim; d++)
+            {
+                mean[d] = 0;
+                for (unsigned n = 0; n < num; n++)
+                {
+                    mean[d] += data[n][d];
+                }
+                mean[d] /= num;
+            }
 
-			/*Covariance*/
+            /*Covariance*/
 #ifdef _OPENMP
 #pragma omp for schedule(guided)
 #endif
-			for (int d = 0; d<_dim; d++)
-			{
-				double mean_d = mean[d];
-				for (int d2 = d; d2<_dim; d2++)
-				{
+            for (int d = 0; d<_dim; d++)
+            {
+                double mean_d = mean[d];
+                for (int d2 = d; d2<_dim; d2++)
+                {
                     double mean_d2 = mean[d2];
-					double cov = 0;
+                    double cov = 0;
 
                     data_t** data_n_End = data + num;
-					for (data_t** data_n = data; data_n != data_n_End; ++data_n)
-					{
-						cov += ((*data_n)[d] - mean_d)*((*data_n)[d2] - mean_d2);
-					}
-					covariance[d][d2] = covariance[d2][d] = cov / num;
-				}
-			}
-		}
+                    for (data_t** data_n = data; data_n != data_n_End; ++data_n)
+                    {
+                        cov += ((*data_n)[d] - mean_d)*((*data_n)[d2] - mean_d2);
+                    }
+                    covariance[d][d2] = covariance[d2][d] = cov / num;
+                }
+            }
+        }
 
-		bool* flag = new bool[_dim];
-		for (int d = 0; d < _dim; d++)
-		{
-			if (covariance[d][d] < 1.0e-10)
-			{
-				flag[d] = false;
-			}
-			else
-			{
-				flag[d] = true;
-			}
-		}
+        bool* flag = new bool[_dim];
+        for (int d = 0; d < _dim; d++)
+        {
+            if (covariance[d][d] < 1.0e-10)
+            {
+                flag[d] = false;
+            }
+            else
+            {
+                flag[d] = true;
+            }
+        }
 
-		for (int d = 0; d < _dim; d++)
-		{
-			for (int d2 = d + 1; d2<_dim; d2++)
-			{
-				if (flag[d] && flag[d2]){
-					if (covariance[d2][d] * covariance[d2][d]>(1 - 1.0e-10)*(covariance[d][d] * covariance[d2][d2]))
-					{
-						flag[d2] = false;
-					}
-				}
-			}
-		}
+        for (int d = 0; d < _dim; d++)
+        {
+            for (int d2 = d + 1; d2<_dim; d2++)
+            {
+                if (flag[d] && flag[d2]){
+                    if (covariance[d2][d] * covariance[d2][d]>(1 - 1.0e-10)*(covariance[d][d] * covariance[d2][d2]))
+                    {
+                        flag[d2] = false;
+                    }
+                }
+            }
+        }
 
-		ZeroCount = 0;
-		for (int d = 0; d<_dim; d++){
-			if (!flag[d])
-			{
-				++ZeroCount;
-			}
-		}
-		delete[] flag;
+        ZeroCount = 0;
+        for (int d = 0; d<_dim; d++){
+            if (!flag[d])
+            {
+                ++ZeroCount;
+            }
+        }
+        delete[] flag;
 }
 
 template<typename data_t>
 void superPCA::calculateCoefficientMatrix(
-	int _dim, size_t num, data_t** data,
-	double* mean, double** coefficient)
+    int _dim, size_t num, data_t** data,
+    double* mean, double** coefficient)
 {
-	calculateCovarianceMatrix(_dim, num, data, mean, coefficient);
+    calculateCovarianceMatrix(_dim, num, data, mean, coefficient);
 
-	for (int d = 0; d < _dim; ++d)
-	{
-		for (int d2 = d + 1; d2 < _dim; ++d2)
-		{
-			coefficient[d][d2] /= sqrt(coefficient[d][d] * coefficient[d2][d2]);
-			coefficient[d2][d] = coefficient[d][d2];
-		}
+    for (int d = 0; d < _dim; ++d)
+    {
+        for (int d2 = d + 1; d2 < _dim; ++d2)
+        {
+            coefficient[d][d2] /= sqrt(coefficient[d][d] * coefficient[d2][d2]);
+            coefficient[d2][d] = coefficient[d][d2];
+        }
 
-		coefficient[d][d] = 1.0;
-	}
+        coefficient[d][d] = 1.0;
+    }
 }
 #endif

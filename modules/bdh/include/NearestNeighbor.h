@@ -17,10 +17,10 @@
 */
 template<typename data_t, typename query_t>
 double Distance(
-	int dim,	   //!< [in] dimension
-	data_t* sample,//!< [in] data
-	query_t* query //!< [in] query
-	);
+    int dim,       //!< [in] dimension
+    data_t* sample,//!< [in] data
+    query_t* query //!< [in] query
+    );
 
 
 /**
@@ -28,23 +28,23 @@ double Distance(
 */
 template<typename data_t, typename query_t>
 int NearestNeighbor(
-	int dim,
-	int num,
-	data_t** sample,
-	query_t* query
-	);
+    int dim,
+    int num,
+    data_t** sample,
+    query_t* query
+    );
 
 /**
 * @brief k-means
 */
 template<typename data_t, typename query_t>
 void NearestNeighbor(
-	int dim,
-	int num,
-	data_t** sample,
-	query_t* query,
-	point_t<data_t>& NNpoint
-	);
+    int dim,
+    int num,
+    data_t** sample,
+    query_t* query,
+    point_t<data_t>& NNpoint
+    );
 
 template<typename data_t, typename query_t>
 double Distance(
@@ -80,24 +80,24 @@ double Distance(
 
 template<typename data_t, typename query_t>
 int NearestNeighbor(
-	int dim, 
-	int num, 
-	data_t** sample, 
-	query_t* query
-	)
+    int dim, 
+    int num, 
+    data_t** sample, 
+    query_t* query
+    )
 {
 
-	int NNidx = 0;
-	double NNdis = Distance(dim, sample[0], query);
-	for (int n = 1; n < num; n++){
+    int NNidx = 0;
+    double NNdis = Distance(dim, sample[0], query);
+    for (int n = 1; n < num; n++){
 
         double distance = Distance(dim, sample[n], query);
-		if (distance < NNdis){
-			NNdis = distance;
-			NNidx = n;
-		}
-	}
-	return NNidx;
+        if (distance < NNdis){
+            NNdis = distance;
+            NNidx = n;
+        }
+    }
+    return NNidx;
 }
 
 template<typename data_t, typename query_t>
@@ -124,25 +124,25 @@ int NearestNeighbor(
 
 template<typename data_t, typename query_t>
 void NearestNeighbor(
-	int dim, 
-	int num, 
-	data_t** sample, 
-	query_t* query,
-	point_t<data_t>& NNpoint
-	)
+    int dim, 
+    int num, 
+    data_t** sample, 
+    query_t* query,
+    point_t<data_t>& NNpoint
+    )
 {
-	NNpoint.index = 0;
-	NNpoint.distance = Distance(dim, sample[0], query);
-	for (int n = 1; n < num; n++)
-	{
+    NNpoint.index = 0;
+    NNpoint.distance = Distance(dim, sample[0], query);
+    for (int n = 1; n < num; n++)
+    {
 
         double distance = Distance(dim, sample[n], query);
-		if (distance < NNpoint.distance)
-		{
-			NNpoint.distance = distance;
-			NNpoint.index = n;
-		}
-	}
+        if (distance < NNpoint.distance)
+        {
+            NNpoint.distance = distance;
+            NNpoint.index = n;
+        }
+    }
 }
 
 #endif// __NEAREST_NEIGHBOR__

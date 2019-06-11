@@ -397,7 +397,6 @@ bool readBinary(const String &path, unsigned &dim, unsigned &num, OutputArray da
     data.create(num, dim, type);
     Mat stub = data.getMat();
 
-    //const int dSize = sizeof(featureElement)*dim;
     for (size_t n = 0; n < num; n++)
     {
         ifs.read((char*)stub.row((int)n).data, CV_ELEM_SIZE(type)*dim);
@@ -408,12 +407,12 @@ bool readBinary(const String &path, unsigned &dim, unsigned &num, OutputArray da
 }
 
 template <typename data_t>
-void parameterTuning(int dim, index_t num, data_t ** const data, base_t * const base, int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, HashTable &hashTable, double &delta, std::vector<Subspace> &subspace, Subspace& lestspace, double bit_step = 1.0, double sampling_rate = 1.0)
+void parameterTuning(int dim, index_t num, const cv::Mat& data, base_t * const base, int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, HashTable &hashTable, double &delta, std::vector<Subspace> &subspace, Subspace& lestspace, double bit_step = 1.0)
 {
     hashSize = (size_t(1) << bit);//hash size is 2^bit
     Subspace::dim = dim;
 
-    pointSize = sizeof(featureElement)*dim;//byte size of a point's value
+    pointSize = sizeof(data_t)*dim;//byte size of a point's value
     entrySize = pointSize + sizeof(index_t);//byte size to entry a point into hash table
 
     double variance = 0;
@@ -425,42 +424,12 @@ void parameterTuning(int dim, index_t num, data_t ** const data, base_t * const 
 
     hashTable.initialize(entrySize, hashSize);
 
-    BDHtraining<featureElement> BDHtrainer;
+    BDHtraining<data_t> BDHtrainer;
 
-    if (sampling_rate < 1.0)
-    {//use a part of data set for training
-
-        data_t** l_data = new data_t*[num];
-        index_t l_num = 0;
-
-        double tmp = 0.0;
-        for (size_t n = 0; n < num; ++n)
-        {
-            tmp += sampling_rate;
-            if (sampling_rate >= 1.0)
-            {
-                l_data[l_num++] = data[n];
-                sampling_rate -= 1.0;
-            }
-        }
-
-        BDHtrainer.training_ICCV2013(
-            dim, l_num, (featureElement**)l_data,
-            base, P, bit, bit_step
-        );
-
-        delete[] l_data;
-
-    }
-    else
-    {
-
-        BDHtrainer.training_ICCV2013(
-            dim, num, (featureElement**)data,
-            base, P, bit, bit_step
-        );
-
-    }
+    BDHtrainer.training(
+        dim, num, data,
+        base, P, bit, bit_step
+    );
 
     M = BDHtrainer.getM();
     const baseset_t* const baseSet = BDHtrainer.getBaseSet();
@@ -510,10 +479,19 @@ Index::Index(InputArray data, PCA::Flags order)
     Build(data, order);
 }
 
+#define CV_PARAMETER_TUNING(Tp, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15) parameterTuning<Tp>(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15);
+
 void Index::Build(InputArray data, PCA::Flags order)
 {
     cv::Mat _data = data.getMat();
-    originalData = _data.clone();
+    if (order == PCA::DATA_AS_ROW)
+    {
+        originalData = _data.clone();
+    }
+    else
+    {
+        originalData = _data.t();
+    }
     cv::PCA pca(originalData, Mat(), order, order == PCA::DATA_AS_ROW ? originalData.rows : originalData.cols);
 
     int length = originalData.rows;
@@ -531,14 +509,19 @@ void Index::Build(InputArray data, PCA::Flags order)
             base[d].direction[x] = (double)((float*)(pca.eigenvectors.data + d * pca.eigenvectors.step))[x];
         }
     }
-    featureElement **convertData = new featureElement*[length];
-    for (int n = 0; n < length; n++)
+    switch (_data.depth())
     {
-        convertData[n] = new featureElement[dim];
-        memcpy(convertData[n], (featureElement*)originalData.data + n * originalData.step, sizeof(featureElement) * dim);
+    case CV_8U:  CV_PARAMETER_TUNING(unsigned char , dim, length, _data, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
+    case CV_8S:  CV_PARAMETER_TUNING(char          , dim, length, _data, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
+    case CV_16U: CV_PARAMETER_TUNING(unsigned short, dim, length, _data, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
+    case CV_16S: CV_PARAMETER_TUNING(short         , dim, length, _data, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
+    case CV_32S: CV_PARAMETER_TUNING(int           , dim, length, _data, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
+    case CV_32F: CV_PARAMETER_TUNING(float         , dim, length, _data, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
+    case CV_64F: CV_PARAMETER_TUNING(double        , dim, length, _data, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
+    default:
+        CV_Error(Error::StsUnsupportedFormat, "unsupported type");
+        break;
     }
-
-    parameterTuning(dim, length, convertData, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1, 1.0);
 
     //delete base
     if (base != NULL)
@@ -558,19 +541,6 @@ void Index::Build(InputArray data, PCA::Flags order)
     // entory data points into hash table
     storePoint();
 
-    if (convertData != NULL)
-    {
-        for (int n = 0; n < length; n++)
-        {
-            if (convertData[n] != NULL)
-            {
-                delete[] convertData[n];
-                convertData[n] = NULL;
-            }
-        }
-        delete[] convertData;
-        convertData = NULL;
-    }
 }
 
 bool Index::loadTable(const String & path)
