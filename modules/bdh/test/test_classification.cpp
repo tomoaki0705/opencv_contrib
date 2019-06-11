@@ -147,8 +147,8 @@ void linearCheck(const cv::Mat& reference1, const cv::Mat& reference2, const bdh
 
 TEST(BDH_Classification, Regression)
 {
-    const int kDimension = 128;
-    const int kLength = 10000;
+    const int kDimension = 6;
+    const int kLength = 500;
     Mat originalData = Mat(kLength, kDimension, CV_8U);
     RNG& rng = theRNG();
     rng.fill(originalData, cv::RNG::UNIFORM, 0, UCHAR_MAX + 1);
