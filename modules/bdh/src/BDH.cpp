@@ -749,7 +749,7 @@ void Subspace::getPCAdata(const Mat &data, double* PCAdata) const
     int i = 0;
     switch (data.depth())
     {
-    case CV_8U:  INNER_PRODUCT(i, PCAdata, baseVector, data, unsigned char ); break;
+    case CV_8U:  for (i = 0; i < baseVector.rows; i++) { PCAdata[i] = innerProduct((double*)baseVector.row(i).data, (unsigned char*)data.data, baseVector.cols); }; break;
     case CV_8S:  INNER_PRODUCT(i, PCAdata, baseVector, data, char          ); break;
     case CV_16U: INNER_PRODUCT(i, PCAdata, baseVector, data, unsigned short); break;
     case CV_16S: INNER_PRODUCT(i, PCAdata, baseVector, data, short         ); break;
@@ -764,7 +764,7 @@ void Subspace::getPCAdata(const Mat &data, double* PCAdata) const
 
 #undef INNER_PRODUCT
 
-void cv::bdh::Subspace::getPCAdata(const Mat & data, Mat & PCAdata) const
+void Subspace::getPCAdata(const Mat & data, Mat & PCAdata) const
 {
     CV_Assert(data.size() == PCAdata.size());
     CV_Assert(data.type() == PCAdata.type());

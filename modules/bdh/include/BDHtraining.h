@@ -151,6 +151,17 @@ namespace bdh {
         return val;
     }
 
+    template<typename data_t>
+    double innerProduct(const double* base, const data_t* data, int length)
+    {
+        double val = 0.0;
+        for (int d = 0; d < length; ++d)
+        {
+            val += base[d] * data[d];
+        }
+        return val;
+    }
+
     template <typename data_t>
     void BDHtraining<data_t>::training(
         int _dim,
@@ -179,6 +190,7 @@ namespace bdh {
 
         float*** subPrjData = new float**[M_max];
         const auto stride = data.step.p[0];
+        int length = baseSet[0].base[0].direction.size();
         for (int d, m = 0; m < M_max; ++m)
         {
             subPrjData[m] = new float*[num];
@@ -192,7 +204,7 @@ namespace bdh {
                     // pca.eigenvectors
                     subPrjData[m][n][d]
                         = static_cast<float>(
-                            innerProduct<data_t>(stub[d].direction, (data_t*)(data.data + stride*d))
+                            innerProduct<data_t>((const double*)(&stub[d].direction[0]), (data_t*)(data.data + stride*d), length)
                             );
                 }
             }

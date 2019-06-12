@@ -49,7 +49,8 @@ void Subspace::setParameters(const baseset_t& baseSet)
 
     for (int d = 0; d < subDim; d++)
     {
-        baseVector.push_back(baseSet.base[d].direction);
+        Mat stub = Mat(baseSet.base[d].direction);
+        baseVector.push_back(stub.t());
     }
 }
 
