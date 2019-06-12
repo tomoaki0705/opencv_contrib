@@ -178,10 +178,11 @@ namespace bdh {
         partitioningDataspace(baseInput);
 
         float*** subPrjData = new float**[M_max];
+        const auto stride = data.step.p[0];
         for (int d, m = 0; m < M_max; ++m)
         {
             subPrjData[m] = new float*[num];
-
+            base_t* stub = baseSet[m].base;
             for (unsigned n = 0; n < num; ++n)
             {
                 subPrjData[m][n] = new float[P];
@@ -191,7 +192,7 @@ namespace bdh {
                     // pca.eigenvectors
                     subPrjData[m][n][d]
                         = static_cast<float>(
-                            innerProduct<data_t>(baseSet[m].base[d].direction, (data_t*)data.row(d).data)
+                            innerProduct<data_t>(stub[d].direction, (data_t*)(data.data + stride*d))
                             );
                 }
             }
