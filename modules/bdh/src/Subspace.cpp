@@ -1,5 +1,6 @@
 
 #include "baseset.h"
+#include <opencv2/core.hpp>
 #include <opencv2/bdh.hpp>
 #include <Subspace.h>
 #include <NearestNeighbor.h>
@@ -48,8 +49,7 @@ void Subspace::setParameters(const baseset_t& baseSet)
 
     for (int d = 0; d < subDim; d++)
     {
-        Mat stub(1, dim, CV_64FC1, baseSet.base[d].direction);
-        baseVector.push_back(stub);
+        baseVector.push_back(baseSet.base[d].direction);
     }
 }
 

@@ -27,16 +27,16 @@ namespace bdh {
         int dim;      //!< dimension of dataspace
         unsigned num; //!< number of data samples
 
-                        //parameters
+        //parameters
         int M;   //!< number of subspace
         int P;   //!< dimension of subspace
         int U;   //!< numer of base used for hashing = P*M
         int bit; //!< bits num of hash table
 
         //result values
-        size_t hashSize;    //!< hash size
-        baseset_t* baseSet; //!< baseSet[M]
-        baseset_t lestSet;  //!< baseSet not used for hashing
+        size_t hashSize;                //!< hash size
+        std::vector<baseset_t> baseSet; //!< baseSet[M]
+        baseset_t lestSet;              //!< baseSet not used for hashing
 
     public:
 
@@ -51,7 +51,6 @@ namespace bdh {
             , U(0)
             , bit(0)
             , hashSize(0)
-            , baseSet(nullptr)
             , lestSet()
         {}
 
@@ -60,15 +59,7 @@ namespace bdh {
         */
         ~BDHtraining()
         {
-            if (baseSet != nullptr)
-            {
-                for (int m = 0; m < M; ++m)
-                {
-                    baseSet[m].clear();
-                }
-                delete[] baseSet;
-                baseSet = nullptr;
-            }
+            baseSet.clear();
             lestSet.clear();
         }
 
@@ -81,20 +72,20 @@ namespace bdh {
         * @brief training BDH parameters
         */
         void training(
-            int _dim,                      //!< [in] dimension
-            unsigned _num,                 //!< [in] number of sample
-            const cv::Mat& data,           //!< [in] sample data set
-            const base_t* const baseInput, //!< [in] base
-            int _P,                        //!< [in] number of subspace
-            int _bit,                      //!< [in] bits num of hash table
-            double bit_step = 1.0          //!< [in] training parameter.
+            int _dim,                             //!< [in] dimension
+            unsigned _num,                        //!< [in] number of sample
+            const cv::Mat& data,                  //!< [in] sample data set
+            const std::vector<base_t>& baseInput, //!< [in] base
+            int _P,                               //!< [in] number of subspace
+            int _bit,                             //!< [in] bits num of hash table
+            double bit_step = 1.0                 //!< [in] training parameter.
         );
 
         /**
         * @brief getter
         * @return baseSet
         */
-        const baseset_t* getBaseSet() const 
+        const std::vector<baseset_t>& getBaseSet() const 
         {
             return baseSet;
         }
@@ -119,9 +110,7 @@ namespace bdh {
     private:
 
         //データ空間をM個の部分空間に分割する
-        void partitioningDataspace(
-            const base_t* const base
-        );
+        void BDHtraining<data_t>::partitioningDataspace(const std::vector<base_t>& base);
 
 
         //各部分空間のセントロイドを求める
@@ -152,10 +141,10 @@ namespace bdh {
     int base_t::dim;
 
     template<typename data_t>
-    double innerProduct(const double* base, const data_t* data, int dim)
+    double innerProduct(const std::vector<double>& base, const data_t* data)
     {
         double val = 0.0;
-        for (int d = 0; d < dim; ++d)
+        for (int d = 0; d < base.size(); ++d)
         {
             val += base[d] * data[d];
         }
@@ -167,7 +156,7 @@ namespace bdh {
         int _dim,
         unsigned _num,
         const cv::Mat& data,
-        const base_t* const baseInput,
+        const std::vector<base_t>& baseInput,
         int _P,
         int _bit,
         double bit_step)
@@ -202,7 +191,7 @@ namespace bdh {
                     // pca.eigenvectors
                     subPrjData[m][n][d]
                         = static_cast<float>(
-                            innerProduct<data_t>(baseSet[m].base[d].direction, (data_t*)data.row(d).data, data.cols)
+                            innerProduct<data_t>(baseSet[m].base[d].direction, (data_t*)data.row(d).data)
                             );
                 }
             }
@@ -229,8 +218,8 @@ namespace bdh {
 
             lestSet.base[d] = baseInput[U + d];
             // pca.eigenvectors
-            lestSet.base[d].direction = new double[dim];
-            memcpy(lestSet.base[d].direction, baseInput[U + d].direction, sizeof(double)*dim);
+            lestSet.base[d].direction.assign(dim, 0);
+            copy(baseInput[U + d].direction.begin(), baseInput[U + d].direction.end(), lestSet.base[d].direction.begin());
             // pca.eigenvalues
             lestSet.variance += baseInput[U + d].variance;
         }
@@ -238,16 +227,16 @@ namespace bdh {
 
 
     template <typename data_t>
-    void BDHtraining<data_t>::partitioningDataspace(
-        const base_t* const base)
+    void BDHtraining<data_t>::partitioningDataspace(const std::vector<base_t>& base)
     {
 
-        baseSet = new baseset_t[M];
         for (int m = 0; m < M; ++m)
         {
-            baseSet[m].variance = 0;
-            baseSet[m].subDim = 0;
-            baseSet[m].base = new base_t[P];
+            baseset_t stub;
+            stub.variance = 0;
+            stub.subDim = 0;
+            stub.base = new base_t[P];
+            baseSet.push_back(stub);
         }
 
         for (int m = 0, d = 0; m < M; ++m)
@@ -258,13 +247,9 @@ namespace bdh {
                 baseSet[m].variance += base[d].variance;
                 baseSet[m].base[baseSet[m].subDim] = base[d];
                 // pca.eigenvectors
-                baseSet[m].base[baseSet[m].subDim].direction = new double[dim];
+                baseSet[m].base[baseSet[m].subDim].direction.assign(dim, 0);
 
-                memcpy(
-                    baseSet[m].base[baseSet[m].subDim].direction,
-                    base[d].direction,
-                    sizeof(double)*dim
-                );
+                copy(base[d].direction.begin(), base[d].direction.end(), baseSet[m].base[baseSet[m].subDim].direction.begin());
 
                 ++baseSet[m].subDim;
             }

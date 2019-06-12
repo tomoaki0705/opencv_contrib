@@ -407,21 +407,20 @@ namespace bdh {
 
     struct base_t
     {
-        static int dim;     //!< dimension of data space (static member)
+        static int dim;                //!< dimension of data space (static member)
 
-        int idx;            //!< index of base
-        double mean;        //!< pca.mean           mean at base direction
-        double variance;    //!< pca.eigenvalues    variance at base direction
-        double* direction;  //!< pca.eigenvectors   direction of base [dim]
+        int idx;                       //!< index of base
+        double mean;                   //!< pca.mean           mean at base direction
+        double variance;               //!< pca.eigenvalues    variance at base direction
+        std::vector<double> direction; //!< pca.eigenvectors   direction of base [dim]
 
-                            /**
-                            * @brief default constructor
-                            */
+        /**
+        * @brief default constructor
+        */
         base_t()
             : idx(0)
             , mean(0.0)
             , variance(0.0)
-            , direction(nullptr)
         {}
 
         /**
@@ -432,12 +431,7 @@ namespace bdh {
             idx = 0;
             mean = 0.0;
             variance = 0.0;
-
-            if (direction != nullptr)
-            {
-                delete[] direction;
-            }
-
+            direction.clear();
         }
 
         /**

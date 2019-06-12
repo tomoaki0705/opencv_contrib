@@ -407,7 +407,7 @@ bool readBinary(const String &path, unsigned &dim, unsigned &num, OutputArray da
 }
 
 template <typename data_t>
-void parameterTuning(int dim, index_t num, const cv::Mat& data, base_t * const base, int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, HashTable &hashTable, double &delta, std::vector<Subspace> &subspace, Subspace& lestspace, double bit_step = 1.0)
+void parameterTuning(int dim, index_t num, const cv::Mat& data, const std::vector<base_t>& base, int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, HashTable &hashTable, double &delta, std::vector<Subspace> &subspace, Subspace& lestspace, double bit_step = 1.0)
 {
     hashSize = (size_t(1) << bit);//hash size is 2^bit
     Subspace::dim = dim;
@@ -432,7 +432,7 @@ void parameterTuning(int dim, index_t num, const cv::Mat& data, base_t * const b
     );
 
     M = BDHtrainer.getM();
-    const baseset_t* const baseSet = BDHtrainer.getBaseSet();
+    const std::vector<baseset_t>& baseSet = BDHtrainer.getBaseSet();
     const baseset_t& lestSet = BDHtrainer.getLestSet();
 
     size_t rank = 1;
@@ -457,9 +457,7 @@ void parameterTuning(int dim, index_t num, const cv::Mat& data, base_t * const b
     std::vector<double> stubCentroid;
     for (int d = 0; d < lestspace.subDim; ++d)
     {
-        stubCentroid.push_back(lestSet.base[d].mean);
-        Mat stub(1, dim, CV_64FC1, lestSet.base[d].direction);
-        lestspace.baseVector.push_back(stub);
+        lestspace.baseVector.push_back(lestSet.base[d].direction);
     }
     lestspace.centroidVector.push_back(stubCentroid);
 
@@ -498,15 +496,14 @@ void Index::Build(InputArray data, PCA::Flags order)
     dim = originalData.cols;
 
     // copy PCA direction to base_t for BDH
-    base_t* base = new base_t[dim];
+    std::vector<base_t> base(dim);
     for (int d = 0; d < dim; ++d)
     {
         base[d].mean = (double)pca.mean.at<float>(d);
         base[d].variance = pca.eigenvalues.at<float>(d);
-        base[d].direction = new double[dim];    // pca.eigenvectors
         for (int x = 0; x < dim; x++)
         {
-            base[d].direction[x] = (double)((float*)(pca.eigenvectors.data + d * pca.eigenvectors.step))[x];
+            base[d].direction.push_back((double)((float*)(pca.eigenvectors.data + d * pca.eigenvectors.step))[x]);
         }
     }
     switch (_data.depth())
@@ -521,21 +518,6 @@ void Index::Build(InputArray data, PCA::Flags order)
     default:
         CV_Error(Error::StsUnsupportedFormat, "unsupported type");
         break;
-    }
-
-    //delete base
-    if (base != NULL)
-    {
-        for (int d = 0; d < dim; ++d)
-        {
-            if (base[d].direction != NULL)
-            {
-                delete[] base[d].direction;
-                base[d].direction = NULL;
-            }
-        }
-        delete[] base;
-        base = NULL;
     }
 
     // entory data points into hash table
@@ -747,17 +729,6 @@ void Index::storePoint(/*index_t num, data_t** data*/)
     delete[] entry;
 
     delete[] hashKey;
-}
-
-template<typename data_t>
-double innerProduct(const std::vector<double>& base, const data_t* data)
-{
-    double val = 0.0;
-    for (size_t i = 0; i < base.size(); i++)
-    {
-        val += base[i] * data[i];
-    }
-    return val;
 }
 
 template<typename base_t, typename data_t>
