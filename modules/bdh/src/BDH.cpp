@@ -731,17 +731,6 @@ void Index::storePoint(/*index_t num, data_t** data*/)
     delete[] hashKey;
 }
 
-template<typename base_t, typename data_t>
-double innerProduct(const base_t *base, const data_t* data, size_t length)
-{
-    double val = 0.0;
-    for (size_t i = 0; i < length; i++)
-    {
-        val += base[i] * data[i];
-    }
-    return val;
-}
-
 #define INNER_PRODUCT(index,dst,src1,src2,type2) for(index = 0;index < src1.rows;index++) { dst[index] = innerProduct((double*)src1.row(index).data, (type2*)src2.data, src1.cols); }
 
 void Subspace::getPCAdata(const Mat &data, double* PCAdata) const
