@@ -198,13 +198,13 @@ namespace bdh {
             for (unsigned n = 0; n < num; ++n)
             {
                 subPrjData[m][n] = new float[P];
-
+                const data_t* data_p = (const data_t*)(data.data + stride*n);
                 for (d = 0; d < P; ++d)
                 {
                     // pca.eigenvectors
                     subPrjData[m][n][d]
                         = static_cast<float>(
-                            innerProduct<data_t>((const double*)(&stub[d].direction[0]), (data_t*)(data.data + stride*d), length)
+                            innerProduct<data_t>((const double*)(&stub[d].direction[0]), data_p, length)
                             );
                 }
             }
