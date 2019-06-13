@@ -109,19 +109,19 @@ namespace bdh {
 
     private:
 
-        //データ空間をM個の部分空間に分割する
+        // divide the data space in to M subspace
         void BDHtraining<data_t>::partitioningDataspace(const std::vector<base_t>& base);
 
 
-        //各部分空間のセントロイドを求める
-        //セントロイドの数は自動的に求められる
+        // compute the centroid of each subspace
+        // the number of centroid will be computed automatically
         void calclateCentroid(
             float*** subPrjData,
             double bit_step
         );
 
-        //各部分空間のセントロイドを求める
-        //セントロイドの数は自動的に求められる
+        // compute the centroid of each subspace
+        // the number of centroid will be computed automatically
         void calclateCentroid_ICCV2013(
             float*** subPrjData,
             double bit_step
@@ -132,7 +132,7 @@ namespace bdh {
             float*** subPrjData,
             K_Means<float, double>*& k_means);
 
-        //推定距離の計算用に各セル内の分散を求める
+        // compute the variance of each cell for distance estimation
         void calculateCellVariance(
             float*** subPrjData
         );

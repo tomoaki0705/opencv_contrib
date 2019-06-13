@@ -244,8 +244,8 @@ void K_Means<data_t, centroid_t>::IniCent_PlaPla(
     data_t** point)
 {
 
-    /* 重心を求める */
-    double* Mean = new double[dim]; /* 重心 */
+    /* Calculate the centroid */
+    double* Mean = new double[dim]; /* mean = centroid */
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static)
 #endif
@@ -259,10 +259,10 @@ void K_Means<data_t, centroid_t>::IniCent_PlaPla(
         Mean[d] /= num;
     }
 
-    //最も近いセントロイドまでの距離
+    // distance to the nearest neighbor centroid
     double* MinDisTable = new double[num];
 
-    //各サンプルの重心までの距離をもとめる
+    // compute the distance to each centroid of sample
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static)
 #endif
@@ -271,8 +271,8 @@ void K_Means<data_t, centroid_t>::IniCent_PlaPla(
         MinDisTable[n] = Distance(dim, Mean, point[n]);
     }
 
-    /* 重心から最も遠い点を求め、
-    * それを１つ目のセントロイドとする
+    /* choose the most far centroid
+    * and use it as initial value
     */
     {
         unsigned MinDisIndex_max = findMaxIndex(num, MinDisTable);
@@ -291,7 +291,7 @@ void K_Means<data_t, centroid_t>::IniCent_PlaPla(
         MinDisTable[n] = DBL_MAX;
     }
 
-    /* その他のセントロイドを求める */
+    /* update the distance for other centroids */
     for (int c = 1; c < K; c++)
     {
 
@@ -308,12 +308,12 @@ void K_Means<data_t, centroid_t>::IniCent_PlaPla(
         }
     }
 
-    /* メモリ解放 */
+    /* release the memory */
     delete[] Mean;
     delete[] MinDisTable;
 }
 
-/* 最も遠いインデックスを探す
+/* find the furthest index
 */
 template<typename data_t, typename centroid_t>
 unsigned K_Means<data_t, centroid_t>::findMaxIndex(int num, double* MinDisTable)
@@ -369,7 +369,7 @@ double K_Means<data_t, centroid_t>::CalCent(
     for (int i = 0; i < K; ++i){
         lastCentroid[i] = new centroid_t[dim];
     }
-    //エラーの管理を実装せにゃ
+
     double rate = DBL_MAX;
     error = DBL_MAX;
 
