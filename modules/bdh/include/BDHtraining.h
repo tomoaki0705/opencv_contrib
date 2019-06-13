@@ -190,7 +190,7 @@ namespace bdh {
 
         float*** subPrjData = new float**[M_max];
         const auto stride = data.step.p[0];
-        int length = baseSet[0].base[0].direction.size();
+        int length = (int)baseSet[0].base[0].direction.size();
         for (int d, m = 0; m < M_max; ++m)
         {
             subPrjData[m] = new float*[num];
