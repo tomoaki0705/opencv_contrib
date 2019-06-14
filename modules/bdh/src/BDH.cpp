@@ -32,7 +32,7 @@ void Subspace::setNodeParam(node_t * node, InputArray _query) const
 
 void Index::setLayerParam(layer_t * layer, InputArray _query) const
 {
-
+    size_t M = subspace.size();
     layer_t* layer_p = layer;
     layer_t* layer_p_end = layer + M;
     for (int m = 0; layer_p != layer_p_end; ++m, ++layer_p)
@@ -67,7 +67,7 @@ int Index::NearBucket_R(
 
     int count = 0;
 
-    if (m_plus1 == M)
+    if (m_plus1 == subspace.size())
     {
         index_t collision;
         node_t* node = layer[status.m].node;
@@ -123,7 +123,7 @@ int Index::NearBucket_C(
     const int m_plus1 = status.m + 1;
     int count = 0;
 
-    if (m_plus1 == M)
+    if (m_plus1 == subspace.size())
     {
         hashKey_t Key;
         address_t bucket_p;
@@ -187,7 +187,7 @@ int Index::NearBucket_C_list(
     int count = 0;
     double layerBound = Rbound - (*itr)->dist;
     int i = (*itr)->nodeIdx;
-    if (m_plus1 == M)
+    if (m_plus1 == subspace.size())
     {
         index_t collision;
 
@@ -407,7 +407,7 @@ bool readBinary(const String &path, unsigned &dim, unsigned &num, OutputArray da
 }
 
 template <typename data_t>
-void parameterTuning(int dim, index_t num, const cv::Mat& data, const std::vector<base_t>& base, int P, int bit, int &M, size_t &hashSize, size_t &pointSize, size_t &entrySize, HashTable &hashTable, double &delta, std::vector<Subspace> &subspace, Subspace& lestspace, double bit_step = 1.0)
+void parameterTuning(int dim, index_t num, const cv::Mat& data, const std::vector<base_t>& base, int P, int bit, size_t &hashSize, size_t &pointSize, size_t &entrySize, HashTable &hashTable, double &delta, std::vector<Subspace> &subspace, Subspace& lestspace, double bit_step = 1.0)
 {
     hashSize = (size_t(1) << bit);//hash size is 2^bit
     Subspace::dim = dim;
@@ -431,7 +431,7 @@ void parameterTuning(int dim, index_t num, const cv::Mat& data, const std::vecto
         base, P, bit, bit_step
     );
 
-    M = BDHtrainer.getM();
+    size_t M = BDHtrainer.getM();
     const std::vector<baseset_t>& baseSet = BDHtrainer.getBaseSet();
     const baseset_t& lestSet = BDHtrainer.getLestSet();
 
@@ -463,11 +463,22 @@ void parameterTuning(int dim, index_t num, const cv::Mat& data, const std::vecto
 
 }
 
+Index::Index()
+    : dim(0)
+    , P(10)
+    , bit(13)
+    , delta(0.0)
+    , pointSize(0)
+    , entrySize(0)
+    , hashSize(0)
+    , hashTable()
+{
+}
+
 Index::Index(InputArray data, PCA::Flags order)
     : dim(0)
-    , M(0)
     , P(10)
-    , bit(0)
+    , bit(13)
     , delta(0.0)
     , pointSize(0)
     , entrySize(0)
@@ -477,7 +488,7 @@ Index::Index(InputArray data, PCA::Flags order)
     Build(data, order);
 }
 
-#define CV_PARAMETER_TUNING(Tp, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15) parameterTuning<Tp>(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15);
+#define CV_PARAMETER_TUNING(Tp, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14) parameterTuning<Tp>(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14);
 
 void Index::Build(InputArray data, PCA::Flags order)
 {
@@ -508,13 +519,13 @@ void Index::Build(InputArray data, PCA::Flags order)
     }
     switch (_data.depth())
     {
-    case CV_8U:  CV_PARAMETER_TUNING(unsigned char , dim, length, _data, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
-    case CV_8S:  CV_PARAMETER_TUNING(char          , dim, length, _data, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
-    case CV_16U: CV_PARAMETER_TUNING(unsigned short, dim, length, _data, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
-    case CV_16S: CV_PARAMETER_TUNING(short         , dim, length, _data, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
-    case CV_32S: CV_PARAMETER_TUNING(int           , dim, length, _data, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
-    case CV_32F: CV_PARAMETER_TUNING(float         , dim, length, _data, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
-    case CV_64F: CV_PARAMETER_TUNING(double        , dim, length, _data, base, P, 13, M, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
+    case CV_8U:  CV_PARAMETER_TUNING(unsigned char , dim, length, _data, base, P, bit, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
+    case CV_8S:  CV_PARAMETER_TUNING(char          , dim, length, _data, base, P, bit, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
+    case CV_16U: CV_PARAMETER_TUNING(unsigned short, dim, length, _data, base, P, bit, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
+    case CV_16S: CV_PARAMETER_TUNING(short         , dim, length, _data, base, P, bit, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
+    case CV_32S: CV_PARAMETER_TUNING(int           , dim, length, _data, base, P, bit, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
+    case CV_32F: CV_PARAMETER_TUNING(float         , dim, length, _data, base, P, bit, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
+    case CV_64F: CV_PARAMETER_TUNING(double        , dim, length, _data, base, P, bit, hashSize, pointSize, entrySize, hashTable, delta, subspace, lestspace, 0.1); break;
     default:
         CV_Error(Error::StsUnsupportedFormat, "unsupported type");
         break;
@@ -544,6 +555,7 @@ bool Index::loadParameters(const String& path)
         return false;
     }
 
+    int M;
     ifs >> dim
         >> M
         >> P
@@ -636,6 +648,7 @@ bool Index::saveParameters(const String& path) const
         return false;
     }
 
+    size_t M = subspace.size();
     ofs << dim << "\t"
         << M << "\t"
         << P << "\t"
@@ -768,6 +781,7 @@ size_t Index::hashFunction(int index)
 {
 
     size_t hashKey = 0;
+    size_t M = subspace.size();
     for (int m = 0; m < M; ++m)
     {
         hashKey += subspace[m].getSubHashValue(originalData.row(index));
@@ -786,7 +800,8 @@ int Index::getBucketList(
     Mat query = _query.getMat();
 
     // compute the subspace distance and sort based on the priority
-    CV_Assert(0 < M);
+    CV_Assert(subspace.empty() == false);
+    size_t M = subspace.size();
     layer_t* layer = new layer_t[M];
     for (int m = 0; m < M; ++m)
     {

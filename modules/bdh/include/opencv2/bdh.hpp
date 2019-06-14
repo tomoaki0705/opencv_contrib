@@ -597,7 +597,6 @@ namespace bdh {
     private:
 
         int dim;            //!< dimension of dataspace
-        int M;              //!< number of subspace
         int P;              //!< dimension of subspace
         int bit;            //!< bits num of hash table
         double delta;       //!< increment step of search radius for C search
@@ -616,17 +615,7 @@ namespace bdh {
         /**
         * @brief default constructor
         */
-        Index()
-            : dim(0)
-            , M(0)
-            , P(10)
-            , bit(0)
-            , delta(0.0)
-            , pointSize(0)
-            , entrySize(0)
-            , hashSize(0)
-            , hashTable()
-        {}
+        Index();
 
         Index(InputArray data, enum PCA::Flags order = PCA::DATA_AS_ROW);
 
