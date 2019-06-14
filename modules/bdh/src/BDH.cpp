@@ -743,14 +743,14 @@ void Index::storePoint(/*index_t num, data_t** data*/)
     delete[] hashKey;
 }
 
-#define INNER_PRODUCT(index,dst,src1,src2,type2) for(index = 0;index < src1.rows;index++) { dst[index] = innerProduct((double*)src1.row(index).data, (type2*)src2.data, src1.cols); }
+#define INNER_PRODUCT(index,dst,src1,src2,Tp) for(index = 0;index < src1.rows;index++) { dst[index] = innerProduct((double*)src1.row(index).data, (Tp*)src2.data, src1.cols); }
 
 void Subspace::getPCAdata(const Mat &data, double* PCAdata) const
 {
     int i = 0;
     switch (data.depth())
     {
-    case CV_8U:  for (i = 0; i < baseVector.rows; i++) { PCAdata[i] = innerProduct((double*)baseVector.row(i).data, (unsigned char*)data.data, baseVector.cols); }; break;
+    case CV_8U:  INNER_PRODUCT(i, PCAdata, baseVector, data, unsigned char ); break;
     case CV_8S:  INNER_PRODUCT(i, PCAdata, baseVector, data, char          ); break;
     case CV_16U: INNER_PRODUCT(i, PCAdata, baseVector, data, unsigned short); break;
     case CV_16S: INNER_PRODUCT(i, PCAdata, baseVector, data, short         ); break;
