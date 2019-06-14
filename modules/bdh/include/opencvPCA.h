@@ -11,7 +11,6 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <measure.h>
 
 using namespace std;
 using namespace cv;
