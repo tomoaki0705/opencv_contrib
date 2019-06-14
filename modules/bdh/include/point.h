@@ -1,9 +1,9 @@
-/**
-* @file   point.h
-* @author   T.Sato
-* @date   2015.04.28
-* @version   1.0
-*/
+// This file is part of OpenCV project.
+// It is subject to the license terms in the LICENSE file found in the top-level directory
+// of this distribution and at http://opencv.org/license.html.
+//
+// Copyright (C) 2018, Intel Corporation, all rights reserved.
+// Third party copyrights are property of their respective owners.
 
 #ifndef __POINT__
 #define __POINT__

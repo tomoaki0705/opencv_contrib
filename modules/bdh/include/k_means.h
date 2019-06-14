@@ -1,9 +1,9 @@
-/**
-* @file    k_means.h
-* @author  T.Sato
-* @date    2015.05.05
-* @version 1.0
-*/
+// This file is part of OpenCV project.
+// It is subject to the license terms in the LICENSE file found in the top-level directory
+// of this distribution and at http://opencv.org/license.html.
+//
+// Copyright (C) 2018, Intel Corporation, all rights reserved.
+// Third party copyrights are property of their respective owners.
 
 #ifndef __k_means__
 #define __k_means__
