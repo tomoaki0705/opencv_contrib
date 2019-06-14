@@ -90,7 +90,7 @@ TEST(BDH_Classification, Classify)
     bdh.loadParameters(MAKE_FULL_PATH(kParameterFilename));
     bdh.loadTable(MAKE_FULL_PATH(kHashTableFilename));
 #else
-    bdh.Build(matData);
+    bdh.Build(matData, 10, 13);
 #endif
 
     double searchParam = bdh.get_nDdataPoints()*0.001;
@@ -154,7 +154,7 @@ TEST(BDH_Classification, Regression)
     rng.fill(originalData, cv::RNG::UNIFORM, 0, UCHAR_MAX + 1);
 
     cv::bdh::Index bdh;
-    bdh.Build(originalData);
+    bdh.Build(originalData, 10, 13);
 
     std::vector<unsigned int> counter(kLength);
     std::vector<cv::Mat> averageVector(kLength);

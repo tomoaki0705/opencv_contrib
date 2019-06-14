@@ -617,9 +617,9 @@ namespace bdh {
         */
         Index();
 
-        Index(InputArray data, enum PCA::Flags order = PCA::DATA_AS_ROW);
+        Index(InputArray data, int _P, int _bit, PCA::Flags order = PCA::DATA_AS_ROW);
 
-        void Build(InputArray data, enum PCA::Flags order = PCA::DATA_AS_ROW);
+        void Build(InputArray data, int _P, int _bit, PCA::Flags order = PCA::DATA_AS_ROW);
 
         ~Index()
         {

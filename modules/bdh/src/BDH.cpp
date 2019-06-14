@@ -464,8 +464,8 @@ void parameterTuning(int dim, index_t num, const cv::Mat& data, const std::vecto
 
 Index::Index()
     : dim(0)
-    , P(10)
-    , bit(13)
+    , P(0)
+    , bit(0)
     , delta(0.0)
     , pointSize(0)
     , entrySize(0)
@@ -474,23 +474,25 @@ Index::Index()
 {
 }
 
-Index::Index(InputArray data, PCA::Flags order)
+Index::Index(InputArray data, int _P, int _bit, enum PCA::Flags order)
     : dim(0)
-    , P(10)
-    , bit(13)
+    , P(_P)
+    , bit(_bit)
     , delta(0.0)
     , pointSize(0)
     , entrySize(0)
     , hashSize(0)
     , hashTable()
 {
-    Build(data, order);
+    Build(data, P, bit, order);
 }
 
 #define CV_PARAMETER_TUNING(Tp, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14) parameterTuning<Tp>(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14);
 
-void Index::Build(InputArray data, PCA::Flags order)
+void Index::Build(InputArray data, int _P, int _bit, PCA::Flags order)
 {
+    P = _P;
+    bit = _bit;
     cv::Mat _data = data.getMat();
     if (order == PCA::DATA_AS_ROW)
     {
