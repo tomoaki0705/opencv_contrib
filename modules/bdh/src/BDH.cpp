@@ -1,9 +1,7 @@
 #include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include "opencv2/bdh.hpp"
-#include "opencvPCA.h"
+#include <opencv2/bdh.hpp>
+#include <fstream>
 #include <BDHtraining.h>
-#include <limits>
 const double deltaRate = 50;
 
 ///************** Indexing *******************/
