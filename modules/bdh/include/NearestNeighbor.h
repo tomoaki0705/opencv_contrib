@@ -55,8 +55,10 @@ double Distance(
 {
     double dist = 0.0;
 
-    for (int d = 0; d < dim; ++d) {
-        dist += NORM(query[d] - sample[d]);
+    for (int d = 0; d < dim; d++)
+    {
+        double x = query[d] - sample[d];
+        dist += x * x;
     }
 
     return dist;
@@ -71,8 +73,10 @@ double Distance(
 {
     double dist = 0.0;
 
-    for (int d = 0; d < dim; ++d) {
-        dist += NORM(query[d] - sample[d]);
+    for (int d = 0; d < dim; d++)
+    {
+        double x = query[d] - sample[d];
+        dist += x * x;
     }
 
     return dist;

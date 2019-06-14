@@ -2,9 +2,7 @@
 #include <opencv2/imgproc.hpp>
 #include "opencv2/bdh.hpp"
 #include "opencvPCA.h"
-#include "Subspace.h"
 #include <BDHtraining.h>
-#include <BDH.h>
 #include <limits>
 const double deltaRate = 50;
 
@@ -245,7 +243,8 @@ double computeNorm(Mat& query, const data_t *data, double cutoffDistance)
     double distance = 0.0;
     for (int i = 0; i < query.rows && distance < cutoffDistance; i++)
     {
-        distance += NORM(query.data[i] - (*data++));
+        double x = query.data[i] - (*data++);
+        distance += x * x;
     }
     return distance;
 }

@@ -2,7 +2,6 @@
 #include "baseset.h"
 #include <opencv2/core.hpp>
 #include <opencv2/bdh.hpp>
-#include <Subspace.h>
 #include <NearestNeighbor.h>
 #include <k_means.h>
 #include <algorithm>
@@ -61,7 +60,8 @@ double Subspace::getDistanceToCentroid(double* PCAquery, int centroidIndex) cons
     std::vector<double>::const_iterator centroid_p_end = centroidVector[centroidIndex].end();
     do
     {
-        t += NORM((*PCAquery++) - (*centroid_p++));
+        double x = (*PCAquery++) - (*centroid_p++);
+        t += x * x;
     } while (centroid_p != centroid_p_end);
 
     return t;
