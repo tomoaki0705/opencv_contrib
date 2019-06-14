@@ -112,17 +112,9 @@ namespace bdh {
         // divide the data space in to M subspace
         void BDHtraining<data_t>::partitioningDataspace(const std::vector<base_t>& base);
 
-
         // compute the centroid of each subspace
         // the number of centroid will be computed automatically
-        void calclateCentroid(
-            float*** subPrjData,
-            double bit_step
-        );
-
-        // compute the centroid of each subspace
-        // the number of centroid will be computed automatically
-        void calclateCentroid_ICCV2013(
+        void calculateCentroid(
             float*** subPrjData,
             double bit_step
         );
@@ -210,7 +202,7 @@ namespace bdh {
             }
         }
 
-        calclateCentroid_ICCV2013(subPrjData, bit_step);
+        calculateCentroid(subPrjData, bit_step);
 
         calculateCellVariance(subPrjData);
 
@@ -269,70 +261,8 @@ namespace bdh {
         }
     }
 
-    inline double square(double x)
-    {
-        return x*x;
-    }
-
     template <typename data_t>
-    void BDHtraining<data_t>::calclateCentroid(
-        float*** subPrjData,
-        double bit_step
-    )
-    {
-        K_Means<float, double>* k_means = new K_Means<float, double>[M];
-        for (int m = 0; m < M; m++)
-        {
-            k_means[m].calclateCentroid(P, num, subPrjData[m], 2);
-
-            baseSet[m].error = k_means[m].getError();
-            baseSet[m].bit = 1;
-            baseSet[m].k = 2;
-        }
-
-        int tmp = 5;
-        int loop = static_cast<int>(((bit - M) / bit_step));
-        for (int i = 0; i < loop; ++i)
-        {
-            updateCentroid(bit_step, subPrjData, k_means);
-
-            int percent = static_cast<int>(((bit_step*i + M) / bit) * 100.);
-            if (percent >= tmp)
-            {
-                cout << percent << "% done." << endl;
-                tmp += 5;
-            }
-        }
-
-        updateCentroid(bit - (M + bit_step*loop), subPrjData, k_means);
-
-        cout << "index\tbit\tk\terror" << endl;
-
-        for (int m = 0; m < M; m++)
-        {
-            cout << m << "\t" << baseSet[m].bit << "\t" << baseSet[m].k << "\t" << baseSet[m].error << endl;
-        }
-        cout << endl;
-
-        hashSize = 1;
-        for (int m = 0; m < M; m++)
-        {
-            hashSize *= baseSet[m].k;
-            baseSet[m].centroid = new double*[baseSet[m].k];
-
-            double** const tmpCent = k_means[m].getCentroid();
-            for (int i = 0; i < baseSet[m].k; ++i)
-            {
-                baseSet[m].centroid[i] = new double[P];
-                memcpy(baseSet[m].centroid[i], tmpCent[i], sizeof(double)*P);
-            }
-        }
-
-        delete[] k_means;
-    }
-
-    template <typename data_t>
-    void BDHtraining<data_t>::calclateCentroid_ICCV2013(
+    void BDHtraining<data_t>::calculateCentroid(
         float*** subPrjData,
         double bit_step
     )
@@ -377,7 +307,8 @@ namespace bdh {
         for (int i = 0; i < loop; ++i)
         {
             updateCentroid(bit_step, subPrjData, k_means);
-            percent = static_cast<int>(square(bit_step*i / bit) * 100);
+            double progress = (bit_step*i / bit);
+            percent = static_cast<int>(progress * progress * 100);
             if (percent >= tmp)
             {
                 cout << percent << "% done." << endl;
