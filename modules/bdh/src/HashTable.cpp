@@ -1,5 +1,6 @@
-#include "HashTable.h"
-
+#include <opencv2/bdh.hpp>
+#include <iostream>
+#include <fstream>
 namespace cv {
     namespace bdh {
         void HashTable::initialize(size_t _entrySize, size_t _hashSize)
