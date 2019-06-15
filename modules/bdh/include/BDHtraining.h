@@ -111,7 +111,7 @@ namespace bdh {
     private:
 
         // divide the data space in to M subspace
-        void BDHtraining<data_t>::partitioningDataspace(const std::vector<base_t>& base);
+        void partitioningDataspace(const std::vector<base_t>& base);
 
         // compute the centroid of each subspace
         // the number of centroid will be computed automatically

@@ -66,7 +66,7 @@ int Index::NearBucket_R(
     vector<hashKey_t>& bucketList //![out] collect hash key of buckets near than Radius from query
 )const
 {
-    const int m_plus1 = status.m + 1;
+    const unsigned m_plus1 = status.m + 1;
 
     int count = 0;
 
@@ -123,7 +123,7 @@ int Index::NearBucket_C(
 ) const
 {
 
-    const int m_plus1 = status.m + 1;
+    const unsigned m_plus1 = status.m + 1;
     int count = 0;
 
     if (m_plus1 == subspace.size())
@@ -184,7 +184,7 @@ int Index::NearBucket_C_list(
 {
 
     const int m = (*itr)->m;
-    const int m_plus1 = m + 1;
+    const unsigned m_plus1 = m + 1;
     node_t* const node = layer[m].node;
 
     int count = 0;
@@ -441,7 +441,7 @@ void parameterTuning(int dim, index_t num, const cv::Mat& data, const std::vecto
 
     size_t rank = 1;
 
-    for (int m = 0; m < M; ++m)
+    for (size_t m = 0; m < M; ++m)
     {
         Subspace stub;
         stub.setParameters(baseSet[m]);
@@ -664,7 +664,7 @@ bool Index::saveParameters(const String& path) const
         << entrySize << "\t"
         << hashSize << endl;
 
-    for (int m = 0; m < M; ++m)
+    for (size_t m = 0; m < M; ++m)
     {
         ofs << subspace[m].subHashSize << "\t"
             << subspace[m].variance << endl;
@@ -788,7 +788,7 @@ size_t Index::hashFunction(int index)
 
     size_t hashKey = 0;
     size_t M = subspace.size();
-    for (int m = 0; m < M; ++m)
+    for (size_t m = 0; m < M; ++m)
     {
         hashKey += subspace[m].getSubHashValue(originalData.row(index));
     }
@@ -809,7 +809,7 @@ int Index::getBucketList(
     CV_Assert(subspace.empty() == false);
     size_t M = subspace.size();
     layer_t* layer = new layer_t[M];
-    for (int m = 0; m < M; ++m)
+    for (size_t m = 0; m < M; ++m)
     {
         layer[m].node = new node_t[subspace[m].subHashSize + 1];
         layer[m].node[subspace[m].subHashSize].distance = DBL_MAX;
@@ -874,7 +874,7 @@ int Index::getBucketList(
     }
 
     // clean up
-    for (int m = 0; m < M; ++m)
+    for (size_t m = 0; m < M; ++m)
     {
         delete[] layer[m].node;
     }
