@@ -3,9 +3,9 @@ By downloading, copying, installing or using the software you agree to this
 license. If you do not agree to this license, do not download, install,
 copy or use the software.
 
-License Agreement
-For Open Source Computer Vision Library
-(3-clause BSD License)
+                          License Agreement
+               For Open Source Computer Vision Library
+                       (3-clause BSD License)
 
 Copyright (C) 2013, OpenCV Foundation, all rights reserved.
 Third party copyrights are property of their respective owners.
@@ -13,16 +13,16 @@ Third party copyrights are property of their respective owners.
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
-* Redistributions of source code must retain the above copyright notice,
-this list of conditions and the following disclaimer.
+  * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
 
-* Redistributions in binary form must reproduce the above copyright notice,
-this list of conditions and the following disclaimer in the documentation
-and/or other materials provided with the distribution.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
 
-* Neither the names of the copyright holders nor the names of the contributors
-may be used to endorse or promote products derived from this software
-without specific prior written permission.
+  * Neither the names of the copyright holders nor the names of the contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
 
 This software is provided by the copyright holders and contributors "as is" and
 any express or implied warranties, including, but not limited to, the implied
@@ -126,25 +126,6 @@ TEST(BDH_Classification, Classify)
     
 }
 
-//void linearCheck(const cv::Mat& reference1, const cv::Mat& reference2, const bdh::Index& bdh)
-//{
-//    Mat refereceFloat1, refereceFloat2;
-//    convert(reference1, refereceFloat1, CV_64F);
-//    convert(reference2, refereceFloat2, CV_64F);
-//    const double step = 10;
-//    for (size_t i = 0; i <= (size_t)step; i++)
-//    {
-//        double weight1 = (step - i) / step;
-//        double weight2 = i / step;
-//        refereceFloat1 *= weight1;
-//        refereceFloat2 *= weight2;
-//        Mat query = refereceFloat1 + refereceFloat2;
-//        cv::bdh::point_t dummy;
-//        int classIndex = bdh.NearestNeighbor(query, &dummy, 10, bdh::search_mode::NumPoints, 1, DBL_MAX);
-//        cout << classIndex << '\t' << weight1 << ',' << weight2 << endl;
-//    }
-//}
-//
 TEST(BDH_Classification, Regression)
 {
     const int kDimension = 128;
