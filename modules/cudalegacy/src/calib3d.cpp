@@ -175,6 +175,7 @@ namespace
             for (int iter = range.start; iter < range.end; ++iter)
             {
                 selectRandom(subset_size, num_points, subset_indices);
+                //std::cout << "D31 " << num_points << "," << subset_size << "(" << __LINE__ << ")" << std::endl << std::flush;
                 for (int i = 0; i < subset_size; ++i)
                 {
                    object_subset(0, i) = object->at<Point3f>(subset_indices[i]);
@@ -213,6 +214,7 @@ void cv::cuda::solvePnPRansac(const Mat& object, const Mat& image, const Mat& ca
                              int num_iters, float max_dist, int min_inlier_count,
                              std::vector<int>* inliers)
 {
+    //std::cout << "D0      (" << __LINE__ << ")" << std::endl << std::flush;
     CV_UNUSED(min_inlier_count);
     CV_Assert(object.rows == 1 && object.cols > 0 && object.type() == CV_32FC3);
     CV_Assert(image.rows == 1 && image.cols > 0 && image.type() == CV_32FC2);
@@ -221,7 +223,7 @@ void cv::cuda::solvePnPRansac(const Mat& object, const Mat& image, const Mat& ca
     CV_Assert(!use_extrinsic_guess); // We don't support initial guess for now
     CV_Assert(num_iters <= solve_pnp_ransac::maxNumIters());
 
-    const int subset_size = 4;
+    const int subset_size = 6;
     const int num_points = object.cols;
     CV_Assert(num_points >= subset_size);
 
@@ -230,6 +232,7 @@ void cv::cuda::solvePnPRansac(const Mat& object, const Mat& image, const Mat& ca
     Mat empty_dist_coef;
     Mat image_normalized;
     undistortPoints(image, image_normalized, camera_mat, dist_coef, Mat(), eye_camera_mat);
+    //std::cout << "D2      (" << __LINE__ << ")" << std::endl << std::flush;
 
     // Hypotheses storage (global)
     Mat rot_matrices(1, num_iters * 9, CV_32F);
@@ -238,7 +241,9 @@ void cv::cuda::solvePnPRansac(const Mat& object, const Mat& image, const Mat& ca
     // Generate set of hypotheses using small subsets of the input data
     TransformHypothesesGenerator body(object, image_normalized, empty_dist_coef, eye_camera_mat,
                                       num_points, subset_size, rot_matrices, transl_vectors);
+    //std::cout << "D3      (" << __LINE__ << ")" << std::endl << std::flush;
     parallel_for_(Range(0, num_iters), body);
+    //std::cout << "D4      (" << __LINE__ << ")" << std::endl << std::flush;
 
     // Compute scores (i.e. number of inliers) for each hypothesis
     GpuMat d_object(object);
@@ -249,6 +254,7 @@ void cv::cuda::solvePnPRansac(const Mat& object, const Mat& image, const Mat& ca
             d_object.ptr<float3>(), d_image_normalized.ptr<float2>(), max_dist * max_dist,
             d_hypothesis_scores.ptr<int>());
 
+    //std::cout << "D5      (" << __LINE__ << ")" << std::endl << std::flush;
     // Find the best hypothesis index
     Point best_idx;
     double best_score;
@@ -287,6 +293,7 @@ void cv::cuda::solvePnPRansac(const Mat& object, const Mat& image, const Mat& ca
                 inliers->push_back(i);
         }
     }
+    //std::cout << "D9      (" << __LINE__ << ")" << std::endl << std::flush;
 }
 
 #endif
