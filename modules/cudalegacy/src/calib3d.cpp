@@ -182,7 +182,7 @@ namespace
                    image_subset(0, i) = image->at<Point2f>(subset_indices[i]);
                 }
 
-                solvePnP(object_subset, image_subset, *camera_mat, *dist_coef, rot_vec, transl_vec);
+                solvePnP(object_subset, image_subset, *camera_mat, *dist_coef, rot_vec, transl_vec, false, SOLVEPNP_EPNP);
 
                 // Remember translation vector
                 Mat transl_vec_ = transl_vectors.colRange(iter * 3, (iter + 1) * 3);
@@ -223,7 +223,7 @@ void cv::cuda::solvePnPRansac(const Mat& object, const Mat& image, const Mat& ca
     CV_Assert(!use_extrinsic_guess); // We don't support initial guess for now
     CV_Assert(num_iters <= solve_pnp_ransac::maxNumIters());
 
-    const int subset_size = 6;
+    const int subset_size = 4;
     const int num_points = object.cols;
     CV_Assert(num_points >= subset_size);
 
