@@ -484,6 +484,17 @@ namespace bdh {
 
     };
 
+    struct IndexParams
+    {
+        int dim;
+        int P;
+        int B;
+        double bit_step;
+        double sampling_rate;
+    };
+
+    typedef double searchParams;
+
     /**
     * @brief set of base_t
     * @details destructor and copy constructor are not defined for fast sort

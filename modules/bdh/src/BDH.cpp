@@ -318,7 +318,7 @@ void Index::linearSearchInNNcandidates(InputArray _query, point_t * point, int K
     // initialize the priority queue
     for (int i = 0; i < K; ++i)
     {
-        NNpointQue.push(point_t((int)-1, epsilon));
+        NNpointQue.push(point_t((size_t)-1, epsilon));
     }
 
     // search the nearest point using the hash key
