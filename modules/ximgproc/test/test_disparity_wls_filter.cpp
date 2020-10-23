@@ -145,15 +145,22 @@ TEST_P(DisparityWLSFilterTest, MultiThreadReproducibility)
         std::cout << "m0: 0x" << std::hex << originalHashMulti << std::dec << std::endl;
         std::cout << "s0: 0x" << std::hex << originalHashSingle << std::dec << std::endl;
 
+        auto hashMulti = hash(resMultiThread, Range(0, resMultiThread.rows));
+        auto hashSingle = hash(resSingleThread, Range(0, resSingleThread.rows));
         if (cv::norm(resSingleThread, resMultiThread, NORM_INF) >= MAX_DIF)
         {
-            originalHashMulti = hash(resMultiThread, Range(0, resMultiThread.rows));
-            originalHashSingle = hash(resSingleThread, Range(0, resSingleThread.rows));
-            std::cout << "m : 0x" << std::hex << originalHashMulti << std::dec << std::endl;
-            std::cout << "s : 0x" << std::hex << originalHashSingle << std::dec << std::endl;
+            std::cout << "m1: 0x" << std::hex << hashMulti << std::dec << std::endl;
+            std::cout << "s1: 0x" << std::hex << hashSingle << std::dec << std::endl;
         } 
         EXPECT_LE(cv::norm(resSingleThread, resMultiThread, NORM_INF), MAX_DIF);
         EXPECT_LE(cv::norm(resSingleThread, resMultiThread, NORM_L1), MAX_MEAN_DIF*left.total());
+        hashMulti = hash(resMultiThread, Range(0, resMultiThread.rows));
+        hashSingle = hash(resSingleThread, Range(0, resSingleThread.rows));
+        if (cv::norm(resSingleThread, resMultiThread, NORM_INF) >= MAX_DIF)
+        {
+            std::cout << "m2: 0x" << std::hex << hashMulti << std::dec << std::endl;
+            std::cout << "s2: 0x" << std::hex << hashSingle << std::dec << std::endl;
+        } 
     }
 }
 INSTANTIATE_TEST_CASE_P(FullSet,DisparityWLSFilterTest,Combine(Values(szODD, szQVGA), SrcTypes::all(), GuideTypes::all(),Values(true,false),Values(true,false)));
