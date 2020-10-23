@@ -54,6 +54,39 @@ TEST(DisparityWLSFilterTest, ReferenceAccuracy)
     EXPECT_LE(BadPercent,ref_BadPercent+eps*ref_BadPercent);
 }
 
+template <typename T>
+unsigned int hash_(const Mat& src, const Range& r)
+{
+    unsigned int vxor = 0;
+    //std::cout << "cols   :" << src.cols << std::endl;
+    //std::cout << "rows   :" << src.rows << std::endl;
+    //std::cout << "step   :" << src.step << std::endl;
+    //std::cout << "start  :" << r.start << std::endl;
+    //std::cout << "end    :" << r.end << std::endl;
+    T* ptr = (T*)(src.data);
+    for(size_t y = r.start;y < r.end;y++)
+    {
+        size_t offset = y * src.cols;
+        for(size_t x = 0;x < src.cols;x++)
+        {
+            unsigned int val = (unsigned int)(ptr[offset + x]);
+            vxor = vxor ^ val;
+        }
+    }
+    return vxor;
+}
+
+unsigned int hash(const Mat& src, const Range& r)
+{
+    if(src.depth() == CV_16S || src.depth() == CV_16U)
+        return hash_<unsigned short>(src, r);
+    else
+    {
+        std::cout << "Mat type:" << src.type() << std::endl;
+        return 0;
+    }
+}
+
 TEST_P(DisparityWLSFilterTest, MultiThreadReproducibility)
 {
     if (cv::getNumberOfCPUs() == 1)
@@ -102,11 +135,23 @@ TEST_P(DisparityWLSFilterTest, MultiThreadReproducibility)
         cv::setNumThreads(nThreads);
         Mat resMultiThread;
         wls_filter->filter(left_disp,left,resMultiThread,right_disp,ROI);
+        auto originalHashMulti = hash(resMultiThread, Range(0, resMultiThread.rows));
 
         cv::setNumThreads(1);
         Mat resSingleThread;
         wls_filter->filter(left_disp,left,resSingleThread,right_disp,ROI);
+        auto originalHashSingle = hash(resSingleThread, Range(0, resSingleThread.rows));
 
+        std::cout << "m0: 0x" << std::hex << originalHashMulti << std::dec << std::endl;
+        std::cout << "s0: 0x" << std::hex << originalHashSingle << std::dec << std::endl;
+
+        if (cv::norm(resSingleThread, resMultiThread, NORM_INF) >= MAX_DIF)
+        {
+            originalHashMulti = hash(resMultiThread, Range(0, resMultiThread.rows));
+            originalHashSingle = hash(resSingleThread, Range(0, resSingleThread.rows));
+            std::cout << "m : 0x" << std::hex << originalHashMulti << std::dec << std::endl;
+            std::cout << "s : 0x" << std::hex << originalHashSingle << std::dec << std::endl;
+        } 
         EXPECT_LE(cv::norm(resSingleThread, resMultiThread, NORM_INF), MAX_DIF);
         EXPECT_LE(cv::norm(resSingleThread, resMultiThread, NORM_L1), MAX_MEAN_DIF*left.total());
     }
