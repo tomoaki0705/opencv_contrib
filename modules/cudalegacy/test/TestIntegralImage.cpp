@@ -41,7 +41,7 @@
 //M*/
 
 #include "test_precomp.hpp"
-
+#include <fstream>
 
 template <class T_in, class T_out>
 TestIntegralImage<T_in, T_out>::TestIntegralImage(std::string testName_, NCVTestSourceProvider<T_in> &src_,
@@ -72,6 +72,35 @@ bool TestIntegralImage<T_in, T_out>::init()
     return true;
 }
 
+int checkAvaiableFilename(const std::string& prefix)
+{
+    int result = 0;
+    for(result = 0;result < 100;result++)
+    {
+        std::ifstream ofs(prefix + std::to_string(result) + std::string(".csv"));
+        if(ofs.is_open() == false)
+        {
+	    break;
+	}
+    }
+    return result;
+}
+
+template<typename T>
+void dump(const T* v, const std::string& prefix, int width, int height, int stride)
+{
+    int validNumber = checkAvaiableFilename(prefix);
+    std::ofstream ofs(prefix + std::to_string(validNumber) + std::string(".csv"));
+    for(int y = 0;y < height;y++)
+    {
+    for(int x = 0;x < width ;x++)
+    {
+            ofs << v[y * stride + x] << ',' << '\t';
+    }
+    ofs << std::endl;
+    }
+    //ofs << cv::format(v, cv::Formatter::FMT_CSV);
+}
 
 template <class T_in, class T_out>
 bool TestIntegralImage<T_in, T_out>::process()
@@ -165,10 +194,16 @@ bool TestIntegralImage<T_in, T_out>::process()
 
     NCV_SKIP_COND_END
 
-    //bit-to-bit check
     bool bLoopVirgin = true;
+    
 
     NCV_SKIP_COND_BEGIN
+    if (sizeof(T_in) == sizeof(Ncv32f))
+    {
+        //bit-to-bit check
+        dump((float*)h_imgII.ptr(),   "cpuIntegral", (h_img.width()+1), (h_img.height()+1), h_imgII.stride());
+        dump((float*)h_imgII_d.ptr(), "dpuIntegral", (h_img.width()+1), (h_img.height()+1), h_imgII_d.stride());
+    }
     for (Ncv32u i=0; bLoopVirgin && i < h_img.height() + 1; i++)
     {
         for (Ncv32u j=0; bLoopVirgin && j < h_img.width() + 1; j++)
