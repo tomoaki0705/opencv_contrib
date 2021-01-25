@@ -4,8 +4,7 @@
 
 // This code is also subject to the license terms in the LICENSE_KinectFusion.md file found in this module's directory
 
-typedef __INT8_TYPE__ int8_t;
-
+typedef char int8_t;
 typedef int8_t TsdfType;
 typedef uchar WeightType;
 
@@ -28,6 +27,8 @@ static inline float tsdfToFloat(TsdfType num)
 }
 
 __kernel void preCalculationPixNorm (__global float * pixNorms,
+                                     int pix_step, int pix_offset,
+                                     int pix_rows, int pix_cols,
                                      const __global float * xx,
                                      const __global float * yy,
                                      int width)
@@ -35,7 +36,8 @@ __kernel void preCalculationPixNorm (__global float * pixNorms,
     int i = get_global_id(0);
     int j = get_global_id(1);
     int idx = i*width + j;
-    pixNorms[idx] = sqrt(xx[j] * xx[j] + yy[i] * yy[i] + 1.0f);
+    if(i < pix_rows && j < pix_cols)
+        pixNorms[idx] = sqrt(xx[j] * xx[j] + yy[i] * yy[i] + 1.0f);
 }
 
 __kernel void integrate(__global const char * depthptr,
@@ -85,7 +87,7 @@ __kernel void integrate(__global const char * depthptr,
     int volYidx = x*volDims.x + y*volDims.y;
 
     int startZ, endZ;
-    if(fabs(zStep.z) > 1e-5)
+    if(fabs(zStep.z) > 1e-5f)
     {
         int baseZ = convert_int(-basePt.z / zStep.z);
         if(zStep.z > 0)

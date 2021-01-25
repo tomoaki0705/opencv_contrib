@@ -859,11 +859,11 @@ static cv::UMat preCalculationPixNormGPU(int depth_rows, int depth_cols, Vec2f f
         throw std::runtime_error("Failed to create kernel: " + errorStr);
 
     AccessFlag af = ACCESS_READ;
-    UMat pixNorm = _pixNorm.getUMat(af);
+    UMat pixNorm = _pixNorm.getUMat(ACCESS_RW);
     UMat xx = x.getUMat(af);
     UMat yy = y.getUMat(af);
 
-    kk.args(ocl::KernelArg::PtrReadWrite(pixNorm),
+    kk.args(ocl::KernelArg::ReadWrite(pixNorm),
         ocl::KernelArg::PtrReadOnly(xx),
         ocl::KernelArg::PtrReadOnly(yy),
         depth_cols);
