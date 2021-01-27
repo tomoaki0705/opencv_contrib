@@ -118,6 +118,7 @@ __kernel void integrate(__global const char * depthptr,
     startZ = max(0, startZ);
     endZ = min(volResolution.z, endZ);
 
+    bool firstTimeFlag[] = { false, false , false , true };
     for(int z = startZ; z < endZ; z++)
     {
         // optimization of the following:
@@ -134,6 +135,11 @@ __kernel void integrate(__global const char * depthptr,
         // bilinearly interpolate depth at projected
         if(all(projected >= 0) && all(projected < limits))
         {
+            if (firstTimeFlag[0])
+            {
+                printf("!!!!!!!!!!!!!!\n");
+                firstTimeFlag[0] = false;
+            }
             float2 ip = floor(projected);
             int xi = ip.x, yi = ip.y;
 
@@ -151,6 +157,11 @@ __kernel void integrate(__global const char * depthptr,
             // assume correct depth is positive
             if(all(vv > 0))
             {
+                if (firstTimeFlag[1])
+                {
+                    printf("@@@@@@@@@@@@@@@@@\n");
+                    firstTimeFlag[1] = false;
+                }
                 float2 t = projected - ip;
                 float2 vf = mix(vv.xz, vv.yw, t.x);
                 v = mix(vf.s0, vf.s1, t.y);
@@ -161,6 +172,11 @@ __kernel void integrate(__global const char * depthptr,
         else
             continue;
 
+        if (firstTimeFlag[2] && v == 0)
+        {
+            printf("######################\n");
+            firstTimeFlag[2] = false;
+        }
         if(v == 0)
             continue;
 
@@ -181,6 +197,11 @@ __kernel void integrate(__global const char * depthptr,
             struct TsdfVoxel voxel = volumeptr[volIdx];
             float value  = tsdfToFloat(voxel.tsdf);
             int weight = voxel.weight;
+            if (firstTimeFlag[3])
+            {
+                printf("%d %d %f\n", volIdx, weight, value);
+                firstTimeFlag[3] = false;
+            }
 
             // update TSDF
             value = (value*weight + tsdf) / (weight + 1);
@@ -552,8 +573,10 @@ inline struct CoordReturn coord(int x, int y, int z, float3 V, float v0, int axi
 
         if(weight != 0 && vd != 1.f)
         {
+            //printf("###################");
             if((v0 > 0 && vd < 0) || (v0 < 0 && vd > 0))
             {
+                printf("@@@@@@@@@@@@@@@@@@@@@@@@");
                 // calc actual values or estimate amount of space
                 if(!scan)
                 {
@@ -652,6 +675,10 @@ __kernel void scanSize(__global const struct TsdfVoxel* volumeptr,
         if(weight != 0 && value != 1.f)
         {
             float3 V = (((float3)(x, y, z)) + 0.5f)*voxelSize;
+            if (x == 0 && y == 111 && z == 0)
+            {
+                printf("%d: %d %f %f %f %f %d %d\n", lid, weight, value, V.x, V.y, V.z, (int)voxel.tsdf, idx);
+            }
 
             #pragma unroll
             for(int i = 0; i < 3; i++)
@@ -673,6 +700,13 @@ __kernel void scanSize(__global const struct TsdfVoxel* volumeptr,
 
     // reducebuf keeps counters for each thread
     reducebuf[lid] = npts;
+    if (x == 0 && y == 0 && z == 0)
+    {
+        for (int xx = 0; xx < 8; xx++)
+        {
+            printf("%d: %d\n", xx, reducebuf[xx]);
+        }
+    }
 
     // reduce counter to local mem
 
