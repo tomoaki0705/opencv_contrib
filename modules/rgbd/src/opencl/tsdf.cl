@@ -31,12 +31,17 @@ __kernel void preCalculationPixNorm (__global float * pixNorms,
                                      int pix_rows, int pix_cols,
                                      const __global float * xx,
                                      const __global float * yy,
-                                     int width)
+                                     int width, int height)
 {    
     int i = get_global_id(0);
     int j = get_global_id(1);
     int idx = i*width + j;
-    if(i < pix_rows && j < pix_cols)
+    if (i == 0 && j == 0)
+    {
+        printf("cols: %d\n", pix_cols);
+        printf("rows: %d\n", pix_rows);
+    }
+    if(i < height && j < width && idx < pix_cols)
         pixNorms[idx] = sqrt(xx[j] * xx[j] + yy[i] * yy[i] + 1.0f);
 }
 
@@ -65,6 +70,9 @@ __kernel void integrate(__global const char * depthptr,
 
     // coord-independent constants
     const int3 volDims = volDims4.xyz;
+    int _temp = volDims.z;
+    volDims.z = volDims.x;
+    volDims.x = _temp;
     const float2 limits = (float2)(depth_cols-1, depth_rows-1);
 
     const float4 vol2cam0 = vol2camMatrix.s0123;
@@ -118,7 +126,7 @@ __kernel void integrate(__global const char * depthptr,
     startZ = max(0, startZ);
     endZ = min(volResolution.z, endZ);
 
-    bool firstTimeFlag[] = { false, false , false , true };
+    bool firstTimeFlag[] = { false, false, false, true };
     for(int z = startZ; z < endZ; z++)
     {
         // optimization of the following:
@@ -172,7 +180,7 @@ __kernel void integrate(__global const char * depthptr,
         else
             continue;
 
-        if (firstTimeFlag[2] && v == 0)
+        if (firstTimeFlag[2] && v != 0)
         {
             printf("######################\n");
             firstTimeFlag[2] = false;
@@ -180,7 +188,7 @@ __kernel void integrate(__global const char * depthptr,
         if(v == 0)
             continue;
 
-        int idx = projected.y * depth_rows + projected.x;
+        int idx = projected.y * depth_cols + projected.x;
         float pixNorm = pixNorms[idx];
         //float pixNorm = length(camPixVec);
 
@@ -197,9 +205,18 @@ __kernel void integrate(__global const char * depthptr,
             struct TsdfVoxel voxel = volumeptr[volIdx];
             float value  = tsdfToFloat(voxel.tsdf);
             int weight = voxel.weight;
-            if (firstTimeFlag[3])
+            if (firstTimeFlag[3] && (x == 0) && (y == 92) && (z == 0))
             {
-                printf("%d %d %f\n", volIdx, weight, value);
+                // update TSDF
+                float new_value = (value*weight + tsdf) / (weight + 1);
+                int new_weight = min(weight + 1, maxWeight);
+                printf("%d %d (%d %d %d) (%d %d %d) %f %f %d %f %d %f\n", volIdx, idx, x, y, z, volDims.x, volDims.y, volDims.z, pixNorm, truncDist, weight, value, new_weight, new_value);
+                printf("%d %f\n", 0, pixNorms[0]);
+                for (int xxx = 2; xxx < (640*480); xxx *= 2)
+                {
+                    printf("%d %f\n", xxx, pixNorms[xxx]);
+                }
+
                 firstTimeFlag[3] = false;
             }
 

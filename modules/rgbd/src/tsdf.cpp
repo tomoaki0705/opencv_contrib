@@ -93,6 +93,10 @@ void TSDFVolumeCPU::reset()
         TsdfVoxel& v = reinterpret_cast<TsdfVoxel&>(vv);
         v.tsdf = floatToTsdf(0.0f); v.weight = 0;
     });
+    {
+        uchar* data = volume.data;
+        uchar pixel = data[100];
+    }
 }
 
 TsdfVoxel TSDFVolumeCPU::at(const Vec3i& volumeIdx) const
@@ -133,6 +137,11 @@ void TSDFVolumeCPU::integrate(InputArray _depth, float depthFactor, const Matx44
         pixNorms = preCalculationPixNorm(depth, intrinsics);
     }
 
+    {
+        Mat &debug = volume;
+        uchar *data = debug.data;
+        uchar pixel = data[100];
+    }
     integrateVolumeUnit(truncDist, voxelSize, maxWeight, (this->pose).matrix, volResolution, volStrides, depth,
         depthFactor, cameraPose, intrinsics, pixNorms, volume);
 }
@@ -855,6 +864,11 @@ void TSDFVolumeGPU::reset()
     //hoge.setTo(Scalar_<TsdfType>());
     cv::Vec<uchar, 2> a(floatToTsdf(0.0f), 0);
     volume.setTo(a);
+    {
+        Mat temp = volume.getMat(ACCESS_READ);
+        uchar* data = temp.data;
+        uchar pixel = data[100];
+    }
 }
 
 static void preCalculationPixNormGPU(int depth_rows, int depth_cols, Vec2f fxy, Vec2f cxy, UMat& pixNorm)
@@ -886,7 +900,7 @@ static void preCalculationPixNormGPU(int depth_rows, int depth_cols, Vec2f fxy, 
     kk.args(ocl::KernelArg::ReadWrite(pixNorm),
         ocl::KernelArg::PtrReadOnly(xx),
         ocl::KernelArg::PtrReadOnly(yy),
-        depth_cols);
+        depth_cols, depth_rows);
 
     size_t globalSize[2];
     globalSize[0] = depth_rows;
@@ -894,6 +908,11 @@ static void preCalculationPixNormGPU(int depth_rows, int depth_cols, Vec2f fxy, 
 
     if (!kk.run(2, globalSize, NULL, true))
         throw std::runtime_error("Failed to run kernel");
+    {
+        Mat debug = pixNorm.getMat(ACCESS_READ);
+        uchar* data = debug.data;
+        uchar pixel = data[100];
+    }
 
     return;
 }
@@ -937,6 +956,10 @@ void TSDFVolumeGPU::integrate(InputArray _depth, float depthFactor,
         int _type = debug.type();
         int _ncha = debug.channels();
         cv::Size s = debug.size();
+        cv::Size s0 = volume.size();
+        cv::Size s1 = depth.size();
+        cv::Size s2 = pixNorms.size();
+        s = debug.size();
     }
 
     // TODO: optimization possible
@@ -959,6 +982,18 @@ void TSDFVolumeGPU::integrate(InputArray _depth, float depthFactor,
     globalSize[0] = (size_t)volResolution.x;
     globalSize[1] = (size_t)volResolution.y;
 
+    {
+        cv::Mat debug = volume.getMat(ACCESS_READ);
+        int _type = debug.type();
+        int _ncha = debug.channels();
+        cv::Size s = debug.size();
+    }
+    {
+        cv::Mat debug = pixNorms.getMat(ACCESS_READ);
+        int _type = debug.type();
+        int _ncha = debug.channels();
+        cv::Size s = debug.size();
+    }
     if(!k.run(2, globalSize, NULL, true))
         throw std::runtime_error("Failed to run kernel");
     {
