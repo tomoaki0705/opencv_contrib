@@ -93,10 +93,6 @@ void TSDFVolumeCPU::reset()
         TsdfVoxel& v = reinterpret_cast<TsdfVoxel&>(vv);
         v.tsdf = floatToTsdf(0.0f); v.weight = 0;
     });
-    {
-        uchar* data = volume.data;
-        uchar pixel = data[100];
-    }
 }
 
 TsdfVoxel TSDFVolumeCPU::at(const Vec3i& volumeIdx) const
@@ -137,11 +133,6 @@ void TSDFVolumeCPU::integrate(InputArray _depth, float depthFactor, const Matx44
         pixNorms = preCalculationPixNorm(depth, intrinsics);
     }
 
-    {
-        Mat &debug = volume;
-        uchar *data = debug.data;
-        uchar pixel = data[100];
-    }
     integrateVolumeUnit(truncDist, voxelSize, maxWeight, (this->pose).matrix, volResolution, volStrides, depth,
         depthFactor, cameraPose, intrinsics, pixNorms, volume);
 }
@@ -750,10 +741,6 @@ struct FetchPointsNormalsInvoker : ParallelLoopBody
                     {
                         Point3f V(Point3f((float)x + 0.5f, (float)y + 0.5f, (float)z + 0.5f)*vol.voxelSize);
 
-                        if (x == 0 && y == 111 && z == 0)
-                        {
-                            printf("%d %f %f %f %f %d %d\n", voxel0.weight, v0, V.x, V.y, V.z, (int)voxel0.tsdf, (int)(x*vol.volDims[0]+ y * vol.volDims[1]+z*vol.volDims[2]));
-                        }
                         coord(points, normals, x, y, z, V, v0, 0);
                         coord(points, normals, x, y, z, V, v0, 1);
                         coord(points, normals, x, y, z, V, v0, 2);
@@ -856,19 +843,8 @@ void TSDFVolumeGPU::reset()
 {
     CV_TRACE_FUNCTION();
 
-    //TsdfVoxel v;
-    //v.tsdf = floatToTsdf(0.0f);
-    //v.weight = 0;
-    //std::complex<uchar> v(floatToTsdf(0.0f), 0);
-    //Mat hoge;
-    //hoge.setTo(Scalar_<TsdfType>());
     cv::Vec<uchar, 2> a(floatToTsdf(0.0f), 0);
     volume.setTo(a);
-    {
-        Mat temp = volume.getMat(ACCESS_READ);
-        uchar* data = temp.data;
-        uchar pixel = data[100];
-    }
 }
 
 static void preCalculationPixNormGPU(int depth_rows, int depth_cols, Vec2f fxy, Vec2f cxy, UMat& pixNorm)
@@ -908,11 +884,6 @@ static void preCalculationPixNormGPU(int depth_rows, int depth_cols, Vec2f fxy, 
 
     if (!kk.run(2, globalSize, NULL, true))
         throw std::runtime_error("Failed to run kernel");
-    {
-        Mat debug = pixNorm.getMat(ACCESS_READ);
-        uchar* data = debug.data;
-        uchar pixel = data[100];
-    }
 
     return;
 }
@@ -951,16 +922,6 @@ void TSDFVolumeGPU::integrate(InputArray _depth, float depthFactor,
 
         preCalculationPixNormGPU(depth.rows, depth.cols, fxy, cxy, pixNorms);
     }
-    {
-        cv::Mat debug = volume.getMat(ACCESS_READ);
-        int _type = debug.type();
-        int _ncha = debug.channels();
-        cv::Size s = debug.size();
-        cv::Size s0 = volume.size();
-        cv::Size s1 = depth.size();
-        cv::Size s2 = pixNorms.size();
-        s = debug.size();
-    }
 
     // TODO: optimization possible
     // Use sampler for depth (mask needed)
@@ -982,26 +943,8 @@ void TSDFVolumeGPU::integrate(InputArray _depth, float depthFactor,
     globalSize[0] = (size_t)volResolution.x;
     globalSize[1] = (size_t)volResolution.y;
 
-    {
-        cv::Mat debug = volume.getMat(ACCESS_READ);
-        int _type = debug.type();
-        int _ncha = debug.channels();
-        cv::Size s = debug.size();
-    }
-    {
-        cv::Mat debug = pixNorms.getMat(ACCESS_READ);
-        int _type = debug.type();
-        int _ncha = debug.channels();
-        cv::Size s = debug.size();
-    }
     if(!k.run(2, globalSize, NULL, true))
         throw std::runtime_error("Failed to run kernel");
-    {
-        cv::Mat debug = volume.getMat(ACCESS_READ);
-        int _type = debug.type();
-        int _ncha = debug.channels();
-        cv::Size s = debug.size();
-    }
 }
 
 
