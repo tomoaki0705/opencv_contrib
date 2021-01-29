@@ -132,9 +132,16 @@ void TSDFVolumeCPU::integrate(InputArray _depth, float depthFactor, const Matx44
         frameParams = newParams;
         pixNorms = preCalculationPixNorm(depth, intrinsics);
     }
-
+    {
+        Mat debug = volume.reshape(2, 16384);
+        uchar* data = debug.data;
+    }
     integrateVolumeUnit(truncDist, voxelSize, maxWeight, (this->pose).matrix, volResolution, volStrides, depth,
         depthFactor, cameraPose, intrinsics, pixNorms, volume);
+    {
+        Mat debug = volume.reshape(1, 1024);
+        uchar* data = debug.data;
+    }
 }
 
 #if USE_INTRINSICS
@@ -962,7 +969,7 @@ void TSDFVolumeGPU::integrate(InputArray _depth, float depthFactor,
 
     bool result = k.run(2, globalSize, NULL, true);
     {
-        Mat debug = volume.getMat(ACCESS_READ).reshape(1, 1024);
+        Mat debug = volume.getMat(ACCESS_READ).reshape(2, 16384);
         uchar* data = debug.data;
     }
 
@@ -1011,6 +1018,18 @@ void TSDFVolumeGPU::raycast(const Matx44f& cameraPose, const Intr& intrinsics, c
 
     Vec4i volResGpu(volResolution.x, volResolution.y, volResolution.z);
 
+    {
+        Mat debug = volume.getMat(ACCESS_READ).reshape(2, 16384);
+        uchar* data = debug.data;
+    }
+    {
+        Mat debug = Mat(cam2vol.matrix);
+        uchar* data = debug.data;
+    }
+    {
+        Mat debug = Mat(vol2cam.matrix);
+        uchar* data = debug.data;
+    }
     k.args(ocl::KernelArg::WriteOnlyNoSize(points),
            ocl::KernelArg::WriteOnlyNoSize(normals),
            frameSize,

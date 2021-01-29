@@ -320,7 +320,7 @@ void flyTest(bool hiDense, bool inequal, bool hashTsdf = false)
             Mat rendered;
             kf->render(rendered);
             imshow("render", rendered);
-            waitKey(0);
+            waitKey(2000);
         }
     }
 
