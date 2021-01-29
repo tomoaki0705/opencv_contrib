@@ -362,6 +362,11 @@ bool computePointsNormalsGpu(const Intr intr, float depthFactor, const UMat& dep
         uchar* data = debug.data;
         uchar pixel = data[100];
     }
+    {
+        Mat debug = normals.getMat(ACCESS_READ);
+        uchar* data = debug.data;
+        uchar pixel = data[100];
+    }
 
     return result;
 }
@@ -423,12 +428,20 @@ bool customBilateralFilterGpu(const UMat src /* udepth */, UMat& dst /* smooth *
            kernelSize,
            0.5f / (sigmaSpatial * sigmaSpatial),
            0.5f / (sigmaDepth * sigmaDepth));
-
+    {
+        Mat debug = src.getMat(ACCESS_READ);
+        uchar *data = debug.data;
+    }
     size_t globalSize[2];
     globalSize[0] = (size_t)src.cols;
     globalSize[1] = (size_t)src.rows;
 
-    return k.run(2, globalSize, NULL, true);
+    bool result = k.run(2, globalSize, NULL, true);
+    {
+        Mat debug = dst.getMat(ACCESS_READ);
+        uchar *data = debug.data;
+    }
+    return result;
 }
 
 

@@ -250,7 +250,13 @@ bool KinFuImpl<MatType>::updateT(const MatType& _depth)
         if(!success)
             return false;
 
+        std::cout << "======= pose   ======" << std::endl;
+        std::cout << cv::format(cv::Mat(pose), cv::Formatter::FMT_CSV) << std::endl;
         pose = (Affine3f(pose) * affine).matrix;
+        std::cout << "======= pose   ======" << std::endl;
+        std::cout << cv::format(cv::Mat(pose), cv::Formatter::FMT_CSV) << std::endl;
+        std::cout << "======= affine ======" << std::endl;
+        std::cout << cv::format(cv::Mat(affine.matrix), cv::Formatter::FMT_CSV) << std::endl;
 
         float rnorm = (float)cv::norm(affine.rvec());
         float tnorm = (float)cv::norm(affine.translation());

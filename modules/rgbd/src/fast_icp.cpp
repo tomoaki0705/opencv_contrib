@@ -77,7 +77,24 @@ bool ICPImpl::estimateTransform(cv::Affine3f& transform,
         _newPoints.getUMatVector(np);
         _oldNormals.getUMatVector(on);
         _newNormals.getUMatVector(nn);
-        return estimateTransformT<UMat>(transform, op, on, np, nn);
+        for (size_t l = 0; l < iterations.size(); l++)
+        {
+            size_t level = iterations.size() - 1 - l;
+            Mat debug = op[level].getMat(ACCESS_READ);
+            debug = on[level].getMat(ACCESS_READ);
+            debug = np[level].getMat(ACCESS_READ);
+            debug = nn[level].getMat(ACCESS_READ);
+            uchar *data = debug.data;
+        }
+        bool result = estimateTransformT<UMat>(transform, op, on, np, nn);
+        for (size_t l = 0; l < iterations.size(); l++)
+        {
+            size_t level = iterations.size() - 1 - l;
+            Mat debug = np[level].getMat(ACCESS_READ);
+            debug = nn[level].getMat(ACCESS_READ);
+            uchar *data = debug.data;
+        }
+        return result;
     }
 #endif
 
