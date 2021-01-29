@@ -885,7 +885,7 @@ static void preCalculationPixNormGPU(int depth_rows, int depth_cols, Vec2f fxy, 
     if (!kk.run(2, globalSize, NULL, true))
         throw std::runtime_error("Failed to run kernel");
     {
-        Mat debug = pixNorm.getMat(ACCESS_READ);
+        Mat debug = pixNorm.getMat(ACCESS_READ).reshape(1, 480);
         uchar* data = debug.data;
         uchar pixel = data[100];
     }
@@ -928,6 +928,18 @@ void TSDFVolumeGPU::integrate(InputArray _depth, float depthFactor,
         preCalculationPixNormGPU(depth.rows, depth.cols, fxy, cxy, pixNorms);
     }
 
+    {
+        Mat debug = depth.getMat(ACCESS_READ);
+        uchar* data = debug.data;
+    }
+    {
+        Mat debug = pixNorms.getMat(ACCESS_READ).reshape(1,480);
+        uchar* data = debug.data;
+    }
+    {
+        Mat debug = volume.getMat(ACCESS_READ).reshape(2, 16384);
+        uchar* data = debug.data;
+    }
     // TODO: optimization possible
     // Use sampler for depth (mask needed)
     k.args(ocl::KernelArg::ReadOnly(depth),
@@ -948,7 +960,13 @@ void TSDFVolumeGPU::integrate(InputArray _depth, float depthFactor,
     globalSize[0] = (size_t)volResolution.x;
     globalSize[1] = (size_t)volResolution.y;
 
-    if(!k.run(2, globalSize, NULL, true))
+    bool result = k.run(2, globalSize, NULL, true);
+    {
+        Mat debug = volume.getMat(ACCESS_READ).reshape(1, 1024);
+        uchar* data = debug.data;
+    }
+
+    if(!result)
         throw std::runtime_error("Failed to run kernel");
 }
 
@@ -1011,7 +1029,16 @@ void TSDFVolumeGPU::raycast(const Matx44f& cameraPose, const Intr& intrinsics, c
     globalSize[0] = (size_t)frameSize.width;
     globalSize[1] = (size_t)frameSize.height;
 
-    if(!k.run(2, globalSize, NULL, true))
+    bool result = k.run(2, globalSize, NULL, true);
+    {
+        Mat debug = points.getMat(ACCESS_READ);
+        uchar* data = debug.data;
+    }
+    {
+        Mat debug = normals.getMat(ACCESS_READ);
+        uchar* data = debug.data;
+    }
+    if(!result)
         throw std::runtime_error("Failed to run kernel");
 }
 

@@ -458,7 +458,16 @@ bool pyrDownPointsNormalsGpu(const UMat p, const UMat n, UMat &pdown, UMat &ndow
     globalSize[0] = (size_t)pdown.cols;
     globalSize[1] = (size_t)pdown.rows;
 
-    return k.run(2, globalSize, NULL, true);
+    bool result = k.run(2, globalSize, NULL, true);
+    {
+        Mat debug = pdown.getMat(ACCESS_READ);
+        uchar* data = debug.data;
+    }
+    {
+        Mat debug = ndown.getMat(ACCESS_READ);
+        uchar* data = debug.data;
+    }
+    return result;
 }
 
 
