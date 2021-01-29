@@ -884,6 +884,11 @@ static void preCalculationPixNormGPU(int depth_rows, int depth_cols, Vec2f fxy, 
 
     if (!kk.run(2, globalSize, NULL, true))
         throw std::runtime_error("Failed to run kernel");
+    {
+        Mat debug = pixNorm.getMat(ACCESS_READ);
+        uchar* data = debug.data;
+        uchar pixel = data[100];
+    }
 
     return;
 }

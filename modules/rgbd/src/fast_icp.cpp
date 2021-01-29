@@ -577,7 +577,22 @@ void ICPImpl::getAb<UMat>(const UMat& oldPts, const UMat& oldNrm, const UMat& ne
     groupedSumGpu.create(Size(ngroups.width*UTSIZE, ngroups.height),
                          CV_32F);
     groupedSumGpu.setTo(0);
-
+    {
+        Mat debug = oldPts.getMat(ACCESS_READ);
+        uchar *data = debug.data;
+    }
+    {
+        Mat debug = oldNrm.getMat(ACCESS_READ);
+        uchar *data = debug.data;
+    }
+    {
+        Mat debug = newPts.getMat(ACCESS_READ);
+        uchar *data = debug.data;
+    }
+    {
+        Mat debug = newNrm.getMat(ACCESS_READ);
+        uchar *data = debug.data;
+    }
     // TODO: optimization possible:
     // samplers instead of oldPts/oldNrm (mask needed)
     k.args(ocl::KernelArg::ReadOnlyNoSize(oldPts),

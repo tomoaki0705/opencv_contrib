@@ -356,7 +356,14 @@ bool computePointsNormalsGpu(const Intr intr, float depthFactor, const UMat& dep
     globalSize[0] = (size_t)depth.cols;
     globalSize[1] = (size_t)depth.rows;
 
-    return k.run(2, globalSize, NULL, true);
+    bool result = k.run(2, globalSize, NULL, true);
+    {
+        Mat debug = points.getMat(ACCESS_READ);
+        uchar* data = debug.data;
+        uchar pixel = data[100];
+    }
+
+    return result;
 }
 
 

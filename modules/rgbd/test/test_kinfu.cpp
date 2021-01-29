@@ -274,7 +274,7 @@ Ptr<Scene> Scene::create(int nScene, Size sz, Matx33f _intr, float _depthFactor)
         return makePtr<CubeSpheresScene>(sz, _intr, _depthFactor);
 }
 
-static const bool display = false;
+static const bool display = true;
 
 void flyTest(bool hiDense, bool inequal, bool hashTsdf = false)
 {
@@ -320,7 +320,7 @@ void flyTest(bool hiDense, bool inequal, bool hashTsdf = false)
             Mat rendered;
             kf->render(rendered);
             imshow("render", rendered);
-            waitKey(10);
+            waitKey(0);
         }
     }
 
