@@ -64,10 +64,7 @@ __kernel void integrate(__global const char * depthptr,
         return;
 
     // coord-independent constants
-    int3 volDims = volDims4.xyz;
-    int _temp = volDims.z;
-    volDims.z = volDims.x;
-    volDims.x = _temp;
+    const int3 volDims = volDims4.xyz;
     const float2 limits = (float2)(depth_cols-1, depth_rows-1);
 
     const float4 vol2cam0 = vol2camMatrix.s0123;
