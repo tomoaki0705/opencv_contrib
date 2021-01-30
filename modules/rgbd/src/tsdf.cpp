@@ -344,14 +344,6 @@ inline Point3f TSDFVolumeCPU::getNormalVoxel(const Point3f& p) const
 }
 #endif
 
-static inline void patchNan(v_float32x4& v)
-{
-    float work[4];
-    v_store(work, v);
-    work[3] = work[2];
-    v = v_load(work);
-}
-
 struct RaycastInvoker : ParallelLoopBody
 {
     RaycastInvoker(Points& _points, Normals& _normals, const Matx44f& cameraPose,
@@ -433,8 +425,6 @@ struct RaycastInvoker : ParallelLoopBody
                 v_float32x4 maxAx = v_max(ttop, tbottom);
 
                 // near clipping plane
-                patchNan(minAx);
-                patchNan(maxAx);
                 const float clip = 0.f;
                 float _minAx[4], _maxAx[4];
                 v_store(_minAx, minAx);
