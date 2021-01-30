@@ -850,8 +850,7 @@ void TSDFVolumeGPU::reset()
 {
     CV_TRACE_FUNCTION();
 
-    cv::Vec<uchar, 2> a(floatToTsdf(0.0f), 0);
-    volume.setTo(a);
+    volume.setTo(Scalar(0, 0));
 }
 
 static void preCalculationPixNormGPU(int depth_rows, int depth_cols, Vec2f fxy, Vec2f cxy, UMat& pixNorm)
