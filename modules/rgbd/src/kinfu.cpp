@@ -160,7 +160,7 @@ void KinFuImpl<MatType >::reset()
 {
     frameCounter = 0;
     pose = Affine3f::Identity().matrix;
-    volume->reset();
+    //volume->reset();
 }
 
 template< typename MatType >
