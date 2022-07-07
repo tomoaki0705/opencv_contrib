@@ -953,8 +953,9 @@ static void _refineCandidateLines(std::vector<Point>& nContours, std::vector<Poi
 		}
 		cntPts[group].push_back(contour2f[i]);
 	}
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++) {
         CV_Assert(cornerIndex[i] != -1);
+    }
 	// saves extra group into corresponding
 	if( !cntPts[4].empty() ){
 		for( unsigned int i=0; i < cntPts[4].size() ; i++ )
