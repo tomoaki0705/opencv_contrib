@@ -23,6 +23,11 @@ ocv_define_module(tracking
 
 ocv_warnings_disable(CMAKE_CXX_FLAGS -Wno-shadow /wd4458)
 
+if(ARM AND CV_GCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.0)
+  # suppress warnings from GCC only on 7.1 and later
+  ocv_warnings_disable(CMAKE_CXX_FLAGS -Wno-psabi)
+endif()
+
 if(TARGET opencv_test_${name})
   ocv_target_include_directories(opencv_test_${name} "${OpenCV_SOURCE_DIR}/modules")  # use common files from video tests
 endif()
