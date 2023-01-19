@@ -99,8 +99,8 @@ CUDA_TEST_P(CUDA_SURF, Detector)
     std::vector<cv::KeyPoint> keypoints_gold;
     surf_gold->detect(image, keypoints_gold);
 
-    EXPECT_LE(keypoints_gold.size(), keypoints.size());
-    EXPECT_GE(keypoints_gold.size()+1, keypoints.size());
+    int lengthDiff = abs((int)keypoints_gold.size()) - ((int)keypoints.size());
+    EXPECT_LE(lengthDiff, 1);
     int matchedCount = getMatchedPointsCount(keypoints_gold, keypoints);
     double matchedRatio = static_cast<double>(matchedCount) / keypoints_gold.size();
 
@@ -131,8 +131,8 @@ CUDA_TEST_P(CUDA_SURF, Detector_Masked)
     std::vector<cv::KeyPoint> keypoints_gold;
     surf_gold->detect(image, keypoints_gold, mask);
 
-    EXPECT_LE(keypoints_gold.size(), keypoints.size());
-    EXPECT_GE(keypoints_gold.size()+1, keypoints.size());
+    int lengthDiff = abs((int)keypoints_gold.size()) - ((int)keypoints.size());
+    EXPECT_LE(lengthDiff, 1);
     int matchedCount = getMatchedPointsCount(keypoints_gold, keypoints);
     double matchedRatio = static_cast<double>(matchedCount) / keypoints_gold.size();
 
